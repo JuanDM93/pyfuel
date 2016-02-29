@@ -1,78 +1,67 @@
-import random
 from jaimes_alg import Contador
-
-
-def read_Data(txt, start, end):
-    data = []
-    for i in range(start, end):
-        data.append(int(txt[i]))
-    return data
-
-
-def pix_txt(path):
-    with open(path) as f:
-        txt = f.read()
-    f.close()
-    return txt
-
-
-def writeOUT(data, path):
-    out = open(path, 'w')
-    for i in data:
-        out.write(i)
-    out.close()
-
-
-def random_pix(size):
-    values = []
-    for i in range(size):
-        values.append(random.randint(0, 1))
-    return values
+from lil_funt import *
 
 class First(object):
 
     def __init__(self):
+        self.runs = 0
         self.id = random.randint(0, 10)
 
-    def readIN(self, source):
-        self.txt = pix_txt(source)
+    def start(self, source):
+        txt = pix_txt(source)
+        size = len(txt)
+        data = {
+            'head': read_Data(txt, 0, 2),
+            'data': read_Data(txt, 2, size)
+        }
+        self.w = data.get('head')[0]
+        self.h = data.get('head')[1]
+        self.cont = Contador(self.w, self.h)
+        data = data.get('data')
 
-    def start(self):
-        size = len(self.txt)
-        self.head = read_Data(self.txt, 0, 2)
-        self.data = read_Data(self.txt, 2, size)
+        #   Gen 0
+        self.q3 = self.w * self.h
+        self.rand = start_random(self.q3)
+        self.lines = self.caracter(data)
+        self.error = self.gen()
 
+    def caracter(self, data):
+        result = self.cont.lines(data)
+        return result
 
-    def process(self):
-        cont = Contador()
-        self.lines = cont.lines(
-            self.data, self.head[0], self.head[1]
-        )
-
+    def gen(self):
         #   Random image generate
-        self.rand = random_pix(16)
-        self.lines_rand = cont.lines(
-                self.rand, self.head[0], self.head[1]
-        )
+        self.rand = random_pix(self.rand)
+        lines_rand = self.caracter(self.rand)
 
+        #   Error check
+        error = self.cont.errors(self.lines, lines_rand)
+        return error
+
+    #   Evolve
+    def process(self):
         #   Compare results
-        flag = True
-        j = 0
-        while flag:
-            ### randomness
-            for i in self.lines:
-                if i != self.lines_rand[j]:
-                    flag = False
-                    break
-                j += 1
+        x = 2
+        runs = 0
+        min_error = 1.0
+        run_limit = 100
 
+        while min_error < x and runs < run_limit:
+            x = self.gen()
+            runs += 1
+
+        print runs
+
+    #   Will print OpenGL
+    def show(self):
+        pass
 
     def close(self):
-        writeOUT(self.lines, 'outfile_%s' % self.id)
+        result = 0
+        writeOUT(result, 'outfile_%s' % self.id)
 
 
 program = First()
-program.readIN('infile')
-program.start()
+program.start('infile')
 program.process()
-program.close()
+program.show()

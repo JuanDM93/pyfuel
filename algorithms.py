@@ -1,4 +1,4 @@
-from master import *
+from master import Process
 
 
 class Algorithm(Process):

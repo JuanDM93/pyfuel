@@ -4,7 +4,8 @@ from algorithms import *
 class Process(object):
 
     def __init__(self, opt):
-        self.result, self.info
+        self.result
+        self.info
         self.opt = opt
         if self.check_self():
             self.alg = Algorithm(opt)
