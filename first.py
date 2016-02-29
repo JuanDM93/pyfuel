@@ -1,6 +1,7 @@
 from jaimes_alg import Contador
 from lil_funt import *
 
+
 class First(object):
 
     def __init__(self):
