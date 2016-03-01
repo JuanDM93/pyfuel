@@ -2,6 +2,7 @@ import random
 
 
 #           Basic IO
+
 def read_Data(txt, start, end):
     data = []
     for i in range(start, end):
@@ -22,6 +23,8 @@ def writeOUT(data, path):
         out.write(i)
     out.close()
 
+
+#               Randomness
 
 #       New random image.... Pure RANDOM(0,1) ???
 def start_random(size):
