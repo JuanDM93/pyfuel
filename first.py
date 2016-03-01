@@ -1,5 +1,6 @@
 from jaimes_alg import Contador
 from lil_funt import *
+from printer import Printer
 
 
 class First(object):
@@ -11,33 +12,40 @@ class First(object):
     def start(self, source):
         txt = pix_txt(source)
         size = len(txt)
+        #   HEADER SIZE ???
         data = {
             'head': read_Data(txt, 0, 2),
             'data': read_Data(txt, 2, size)
         }
-        self.w = data.get('head')[0]
-        self.h = data.get('head')[1]
-        self.cont = Contador(self.w, self.h)
+        w = data.get('head')[0]
+        h = data.get('head')[1]
+        self.cont = Contador(w, h)
         data = data.get('data')
 
         #   Gen 0
-        self.q3 = self.w * self.h
-        self.rand = start_random(self.q3)
-        self.lines = self.caracter(data)
+        self.rand = start_random(w * h)
+        self.lines = self.caracter(True, data)
+        self.circles = self.caracter(False, data)       # Not sure if works
         self.error = self.gen()
 
-    def caracter(self, data):
-        result = self.cont.lines(data)
+    def caracter(self, t, data):
+        if t:
+            result = self.cont.lines(data)
+        else:
+            result = self.cont.circles(data)
         return result
 
     def gen(self):
         #   Random image generate
         self.rand = random_pix(self.rand)
         lines_rand = self.caracter(self.rand)
+        circles_rand = self.caracter(self.rand)
 
         #   Error check
-        error = self.cont.errors(self.lines, lines_rand)
-        return error
+        e1 = self.cont.errors(self.lines, lines_rand)
+        e2 = self.cont.errors(self.circles, circles_rand)
+        error = e1 + e2
+        return error / 2
 
     #   Evolve
     def process(self):
@@ -51,11 +59,13 @@ class First(object):
             x = self.gen()
             runs += 1
 
+        # Only testing...
         print runs
 
     #   Will print OpenGL
     def show(self):
-        pass
+        p = Printer()
+        p.show()
 
     def close(self):
         result = 0
