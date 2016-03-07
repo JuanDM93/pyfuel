@@ -1,5 +1,6 @@
 #import sys
-from master import Process
+from draw.printer import Printer
+from main.algos.process import Process
 
 
 #   Main app
@@ -23,6 +24,8 @@ class MyApp(object):
     def e_StartButton(self, opt, info):     # opt and info from event
         pro = Process(opt)                  # Type of process
         pro.start(info)                     # PDFs or Imgs or 2Dplot or Coef
+        drawer = Printer(pro.result)
+        drawer.show()
 
 
 #   Run main app with UI

@@ -20,6 +20,13 @@ class Contador(object):
     def __init__(self, width, height):
         self.w = width
         self.h = height
+        self.d = 1
+
+    def gH(self):
+        return self.h
+
+    def gW(self):
+        return self.w
 
         #   PDFs DIFF
     def errors(self, old, new):         # Who is old?   Should be original & bestOld ??? Just Original?
@@ -84,53 +91,57 @@ class Contador(object):
 
         width = self.w
         height = self.h
+        depth = self.d
+        rs = width
+        ss = width * height
         val = max(width, height)
         names = ['f2s1', 'flp1', 'f2s0', 'flp0', 'total']
         cont = setCont(val, names)
 
-        for r in range(0, height):
-            for c in range(0, width):
-                first_pix = pixels[r * width + c]
+        for d in range(depth):
+            for r in range(height):
+                for c in range(width):
+                    first_pix = pixels[d*ss + r*rs + c]
 
-                #   Code redu by args   #### Checked!!!     B)
+                    #   Code redu by args   #### Checked!!!     B)
 
-                #   t --> Opera 't'
-                if first_pix == 1:      # Find '1'
-                    a = 'f2s1'
-                    b = 'flp1'
-                    t = True
-                else:                   # Find '0'
-                    a = 'f2s0'
-                    b = 'flp0'
-                    t = False
+                    #   t --> Opera 't'
+                    if first_pix == 1:      # Find '1'
+                        a = 'f2s1'
+                        b = 'flp1'
+                        t = True
+                    else:                   # Find '0'
+                        a = 'f2s0'
+                        b = 'flp0'
+                        t = False
 
-                #   I
-                ls = 0
-                x_r = [r, r + ls]
-                x_ls = [ls, 0]
-                limit = [width - c, height - r]
+                    #   I
+                    delta_offset = [1, rs, ss]
+                    limit = [width - c, height - r, depth - d]
 
-                #   Accountant
-                first_pix = 1
-                for i in range(2):
-                    flag = 1
-                    for ls in range(limit[i]):
-                        # All
-                        cont['total'][ls] += 1
-                        # F2
-                        cont[a][ls] += opera(
-                            t, first_pix, pixels[
-                                x_r[i] * width + c + x_ls[i]
-                            ]
-                        )
-                        # FL-check
-                        flag &= opera(
-                            t, first_pix, pixels[
-                                x_r[i] * width + c + x_ls[i]
-                            ]
-                        )
-                        # FL
-                        cont[b][ls] += flag
+                    #   Accountant
+                    first_pix = 1
+                    for i in delta_offset:
+                        flag = 1
+                        offset = d*ss + r*rs + c
+                        for ls in range(limit[i]):
+                            # All
+                            cont['total'][ls] += 1
+                            # F2
+                            cont[a][ls] += opera(
+                                t, first_pix, pixels[
+                                    offset
+                                ]
+                            )
+                            # FL-check
+                            flag &= opera(
+                                t, first_pix, pixels[
+                                    offset
+                                ]
+                            )
+                            # FL
+                            cont[b][ls] += flag
+                            offset += delta_offset[i]
         return cont
 
 """
