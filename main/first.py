@@ -21,12 +21,12 @@ class First(Process):
         cont = Contador(w, h)
         algo = Algorithm(cont, data)
         try:
-            algo.start()
+            algo.start(0)
         except Exception:
             "Something went wrong there, mate"
 
 
 pro = First(1)
-pro.start('infile')
-drawer = Printer(pro.result)
-drawer.show()
+pro.start('main/infile')
+drawer = Printer()
+drawer.show(pro.result)

@@ -25,8 +25,8 @@ class Process(object):
         self.info = None
 
     def start(self, info):
+        self.result = info
         self.runs += 1
-        self.info = info
 
     def getState(self):
         print str(self.runs) + ' runs dude!'

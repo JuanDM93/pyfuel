@@ -11,8 +11,8 @@ def setCont(limit, names):
         cont[i] = [0] * limit
     return cont
 
-#   Definir HEADER de x bytes para los archivos
-#   0123 <-Tipo (cir, lin, etc) 4567 <-(size, width, height, etc)
+#   Define HEADER x bytes
+#   0123 <-Type (cir, lin, etc) 4567 <-(size, width, height, etc)
 
 
 class Contador(object):
@@ -20,37 +20,23 @@ class Contador(object):
     def __init__(self, width, height):
         self.w = width
         self.h = height
-        self.d = 1
+        self.d = min(width, height)
 
-    def gH(self):
-        return self.h
+        #   PDFs DIFF   --> To define...
+    def errors(self, old, new):
 
-    def gW(self):
-        return self.w
-
-        #   PDFs DIFF
-    def errors(self, old, new):         # Who is old?   Should be original & bestOld ??? Just Original?
-
-        value = len(old)
-        keys = []
-        for i in old.keys():
-            keys.append(i)
-        errors = setCont(value, keys)
-
-        error = 0
-        for k in errors:
+        acum = 0
+        errors = 0
+        for k in old.keys():
             if k is not 'total':
-                for i in range(len(errors) - 1):
+                for i in range(len(old[k])):
                     error = old[k][i] - new[k][i]
                     error *= error
-                    errors[k][i] = error            # <---  May not be needed
-                    errors['total'][i] += error
+                    errors += error
+                    acum += 1
 
-        for i in range(len(errors['total'])):
-            error += errors['total'][i]
-
-        error /= 2.0 * value
-        return error
+        errors /= 2 * acum
+        return errors
 
     def circles(self, pixels):
 
@@ -87,11 +73,13 @@ class Contador(object):
                             cont['PS1'][radio] += flag
         return cont
 
-    def lines(self, pixels):
-
+    def lines(self, pixels, first=0):
+        if first == 0:
+            depth = self.d
+        else:
+            depth = first
         width = self.w
         height = self.h
-        depth = self.d
         rs = width
         ss = width * height
         val = max(width, height)
@@ -103,8 +91,6 @@ class Contador(object):
                 for c in range(width):
                     first_pix = pixels[d*ss + r*rs + c]
 
-                    #   Code redu by args   #### Checked!!!     B)
-
                     #   t --> Opera 't'
                     if first_pix == 1:      # Find '1'
                         a = 'f2s1'
@@ -115,13 +101,12 @@ class Contador(object):
                         b = 'flp0'
                         t = False
 
-                    #   I
                     delta_offset = [1, rs, ss]
                     limit = [width - c, height - r, depth - d]
 
                     #   Accountant
                     first_pix = 1
-                    for i in delta_offset:
+                    for i in range(3):
                         flag = 1
                         offset = d*ss + r*rs + c
                         for ls in range(limit[i]):
@@ -142,48 +127,5 @@ class Contador(object):
                             # FL
                             cont[b][ls] += flag
                             offset += delta_offset[i]
+
         return cont
-
-"""
-                Original
-
-if first_pix == 1:
-    flag = first_pix
-    for ls in range(0, width - c):
-        cont['total'][ls] += 1
-        cont['f2s1'][ls] += first_pix & pixels[
-            r*width + c + ls
-        ]
-        flag = flag & pixels[r*width + c + ls]
-        cont['flp1'][ls] += flag
-
-    flag = first_pix
-    for ls in range(0, height - r):
-        cont['total'][ls] += 1
-        cont['f2s1'][ls] += first_pix & pixels[
-            (r + ls)*width + c
-        ]
-        flag = flag & pixels[(r + ls)*width + c]
-        cont['flp1'][ls] += flag
-
-else:
-    first_pix = 1
-    flag = 1
-    for ls in range(0, width-c):
-        cont['total'][ls] += 1
-        cont['f2s0'][ls] += first_pix ^ pixels[
-            r*width + c + ls
-        ]
-        flag = flag & (first_pix ^ pixels[r*width + c + ls])
-        cont['flp0'][ls] += flag
-
-    flag = 1
-    for ls in range(0, height-r):
-        cont['total'][ls] += 1
-        cont['f2s0'][ls] += first_pix ^ pixels[
-            (r + ls)*width + c
-        ]
-        flag = flag & (first_pix ^ pixels[(r + ls)*width + c])
-        cont['flp0'][ls] += flag
-
-"""
