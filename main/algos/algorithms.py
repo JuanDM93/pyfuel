@@ -11,6 +11,11 @@ def norm(pdf):
     return pdf
 
 
+def message(data, start):
+    return '%3s in %.4s sec E: %.8s' % \
+           (data[0], time.time() - start, data[1])
+
+
 class Algorithm(Process):
 
     def __init__(self, cont, data):
@@ -31,7 +36,7 @@ class Algorithm(Process):
 
         #   Compare results
         min_error = 0.001
-        run_limit = 1000000
+        run_limit = 10000
 
         # Gen 0
         self.rand = MyRandom(self.cont.w, self.cont.h)
@@ -46,21 +51,20 @@ class Algorithm(Process):
         x = best1   # + best2 / 2                       #  May be something different than '2'
         x_last = x
         while self.runs < run_limit:
+            tm = [self.runs, x]
             if min_error < x:
                 x = self.gen(x)
                 if x_last > x:
                     x_last = x
-                    print '' + \
-                          str(time.time() - self.time) + ' ' + \
-                          str(self.runs) + ' ' + str(x)
+                    print message(tm, self.time)
                 self.runs += 1
             else:
-                print "Well, IT may exist...    " + str(x)
+                print "Well, IT may exist... " + \
+                      message(tm, self.time)
                 break
         else:
-            print "God does not exist!!!    " + \
-                  str(x) + ' ' + str(self.runs) + ' in ' +\
-                  str(time.time() - self.time)
+            print "God does not exist!!! " + \
+                  message(tm, self.time)
 
     def gen(self, best):
         #   Random image generate
