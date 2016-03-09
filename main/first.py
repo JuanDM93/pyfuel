@@ -20,10 +20,10 @@ class First(Process):
         data = data.get('data')
         cont = Contador(w, h)
         algo = Algorithm(cont, data)
-        try:
-            algo.start(0)
-        except Exception:
-            "Something went wrong there, mate"
+        #try:
+        algo.start(0)
+        #except Exception:
+        #    print "Something went wrong there, mate"
 
 
 pro = First(1)

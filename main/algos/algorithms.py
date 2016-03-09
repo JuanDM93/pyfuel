@@ -18,7 +18,6 @@ class Algorithm(Process):
         w = cont.w
         h = cont.h
         self.cont = cont
-        self.rand = MyRandom(w, h)
         lines = self.cont.lines(data, 1)
         # circles = self.caracter(False, data)       # Not sure if works
         self.lines = norm(lines)
@@ -27,33 +26,44 @@ class Algorithm(Process):
     def start(self, options):
         opt = options
         opt += self.runs
+
         #   Compare results
-        min_error = 0.00001
-        run_limit = 1000
+        min_error = 0.0001
+        run_limit = 100
 
         # Gen 0
-        line0 = self.caracter(True, self.rand.getImg())
-        rand_L0 = norm(line0)
-        # circle0 = self.caracter(False, self.rand.image)
-        # rand_C0 = norm(circle0)
+        self.rand = MyRandom(self.cont.w, self.cont.h)
+        rand_L0 = self.caracter(True, self.rand.getImg())
+        rand_L0 = norm(rand_L0)
+        # rand_C0 = self.caracter(False, self.rand.getImg())
+        # rand_C0 = norm(rand_C0)
 
         best1 = self.check_error(self.lines, rand_L0)
         # best2 = self.check_error(self.circles, rand_C0)
 
-        x = best1   # + best2 / 2
-        while min_error < x and self.runs < run_limit:
-            x = self.gen(x)
-            self.runs += 1
+        x = best1   # + best2 / 2                       # May be something different than '2'
+        while self.runs < run_limit:
+            if min_error < x:
+                x = self.gen(x)
+                self.runs += 1
+            else:
+                print "Well, IT may exist...    " + str(x)
+                break
 
             # Checking time
-            if self.runs % 100 == 0:
-                print time.time()
+            if self.runs % 1 == 0:
+                print '' + str(time.time()) + ' ' + str(self.runs) + ' ' + str(x)
+
+        else:
+            print "God does not exist!!!    " + str(x) + ' ' + str(self.runs)
 
     def gen(self, best):
         #   Random image generate
         self.rand.rand_pix()
         lines_rand = self.caracter(True, self.rand.getImg())
+        lines_rand = norm(lines_rand)
         # circles_rand = self.caracter(False, self.rand.getImg())
+        # circles_rand = norm(circles_rand)
 
         #   Error check
         e1 = self.check_error(self.lines, lines_rand)
@@ -65,6 +75,7 @@ class Algorithm(Process):
             self.rand.reset()
             return best
         else:
+            self.rand.go()
             return error
 
     def check_error(self, original, rand):

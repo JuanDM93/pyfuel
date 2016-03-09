@@ -75,9 +75,11 @@ class Contador(object):
 
     def lines(self, pixels, first=0):
         if first == 0:
+            dim = 3
             depth = self.d
         else:
-            depth = first
+            dim = 2
+            depth = 1
         width = self.w
         height = self.h
         rs = width
@@ -106,7 +108,7 @@ class Contador(object):
 
                     #   Accountant
                     first_pix = 1
-                    for i in range(3):
+                    for i in range(dim):
                         flag = 1
                         offset = d*ss + r*rs + c
                         for ls in range(limit[i]):

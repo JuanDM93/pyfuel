@@ -2,16 +2,16 @@
 import random
 
 
-def neigh(x, lim):
-        neig = []
+def neigh(n, x, lim):
+        vec = []
         if x > 0:
-            neig.append(
-                x - 1
-            )
+            vec.append(-1)
         if x < lim - 1:
-            neig.append(
-                x + 1
-            )
+            vec.append(1)
+        neig = []
+        for v in vec:
+            neig.append(x + v)
+
         return neig
 
 
@@ -20,57 +20,51 @@ class MyRandom(object):
     def __init__(self, w, h):
         self.w = w
         self.h = h
-        self.d = w
+        self.d = max(w, h)
         self.image = self.start_random()
         self.best = self.image
 
     def start_random(self):
         img3 = []
         for i in range(self.d):
-            img2 = []
-            for j in range(self.w):
-                row = []
-                for k in range(self.h):
-                    p = Pix(i, j, k, self.w)
-                    row.append(p)
-                img2.append(row)
-            img3.append(img2)
+            for j in range(self.h):
+                for k in range(self.w):
+                    p = Pix(k, j, i, self.w)
+                    img3.append(p)
         return img3
 
     def rand_pix(self):
         self.checkN()
         for i in self.image:
-            for j in i:
-                for k in j:
-                    k.change()
+            i.change()
 
     def checkN(self):
         for i in self.image:
-            for j in i:
-                for k in j:
-                    nx = neigh(k.x, self.w)
-                    ny = neigh(k.y, self.h)
-                    nz = neigh(k.z, self.d)
-                    for l in nx:
-                        for m in ny:
-                            for n in nz:
-                                k.flag += k.val ^ self.image[l][m][n].val
+            rs = self.w
+            ss = self.w * self.h
+            off = [1, rs, ss]
+            pos = [i.x, i.y, i.z]
+            lim = [self.w, self.h, self.d]
+            for n in range(3):
+                vec = neigh(n, pos[n], lim[n])
+                for v in vec:
+                    other = i.pos + (v - pos[n])*off[n]
+                    val = self.image[other].val
+                    i.flag += i.val ^ val
+
+    def go(self):
+        self.best = self.image
 
     def reset(self):
         self.image = self.best
         for i in self.image:
-            for j in i:
-                for k in j:
-                    k.reset()
+            i.reset()
 
     def getImg(self):
         image = []
         for i in self.image:
-            for j in i:
-                for k in j:
-                    image.append(k.val)
+            image.append(i.val)
         return image
-
 
 
 class Pix(object):
@@ -78,16 +72,16 @@ class Pix(object):
         self.x = x
         self.y = y
         self.z = z
-        self.pos = z*size*size + x*size + y
+        self.pos = z*size*size + y*size + x
         self.val = random.randint(0, 1)
         self.flag = 0
         self.changes = 0
 
     def change(self):
-        if self.flag and self.changes < 3:
+        if self.flag > 3 > self.changes:
             self.val = ~self.val + 2
             self.changes += 1
 
     def reset(self):
-        self.changes = 1
+        self.changes = 0
 
