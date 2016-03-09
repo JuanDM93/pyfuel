@@ -23,13 +23,15 @@ class Algorithm(Process):
         self.lines = norm(lines)
         # circles = norm(circles)
 
+        self.time = time.time()
+
     def start(self, options):
         opt = options
         opt += self.runs
 
         #   Compare results
-        min_error = 0.0001
-        run_limit = 100
+        min_error = 0.001
+        run_limit = 1000000
 
         # Gen 0
         self.rand = MyRandom(self.cont.w, self.cont.h)
@@ -41,21 +43,24 @@ class Algorithm(Process):
         best1 = self.check_error(self.lines, rand_L0)
         # best2 = self.check_error(self.circles, rand_C0)
 
-        x = best1   # + best2 / 2                       # May be something different than '2'
+        x = best1   # + best2 / 2                       #  May be something different than '2'
+        x_last = x
         while self.runs < run_limit:
             if min_error < x:
                 x = self.gen(x)
+                if x_last > x:
+                    x_last = x
+                    print '' + \
+                          str(time.time() - self.time) + ' ' + \
+                          str(self.runs) + ' ' + str(x)
                 self.runs += 1
             else:
                 print "Well, IT may exist...    " + str(x)
                 break
-
-            # Checking time
-            if self.runs % 1 == 0:
-                print '' + str(time.time()) + ' ' + str(self.runs) + ' ' + str(x)
-
         else:
-            print "God does not exist!!!    " + str(x) + ' ' + str(self.runs)
+            print "God does not exist!!!    " + \
+                  str(x) + ' ' + str(self.runs) + ' in ' +\
+                  str(time.time() - self.time)
 
     def gen(self, best):
         #   Random image generate
@@ -71,12 +76,16 @@ class Algorithm(Process):
 
         error = e1  # + e2 / 2
 
-        if best < error:
-            self.rand.reset()
-            return best
+        if self.rand.resets < 2:
+            if best <= error:
+                self.rand.reset()
+                return best
+            else:
+                self.rand.go()
+                return error
         else:
-            self.rand.go()
-            return error
+            self.rand.restart()
+            return best
 
     def check_error(self, original, rand):
         error = self.cont.errors(original, rand)

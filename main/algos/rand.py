@@ -2,7 +2,7 @@
 import random
 
 
-def neigh(n, x, lim):
+def neigh(x, lim):
         vec = []
         if x > 0:
             vec.append(-1)
@@ -23,6 +23,8 @@ class MyRandom(object):
         self.d = max(w, h)
         self.image = self.start_random()
         self.best = self.image
+        self.resets = 0
+        self.starts = 1
 
     def start_random(self):
         img3 = []
@@ -36,29 +38,37 @@ class MyRandom(object):
     def rand_pix(self):
         self.checkN()
         for i in self.image:
-            i.change()
+                i.change()
 
+    # Should it check EVERY pixel????
     def checkN(self):
         for i in self.image:
-            rs = self.w
-            ss = self.w * self.h
-            off = [1, rs, ss]
-            pos = [i.x, i.y, i.z]
-            lim = [self.w, self.h, self.d]
-            for n in range(3):
-                vec = neigh(n, pos[n], lim[n])
-                for v in vec:
-                    other = i.pos + (v - pos[n])*off[n]
-                    val = self.image[other].val
-                    i.flag += i.val ^ val
+            if i.pos % 2 == 0:              # May use something better
+                rs = self.w
+                ss = self.w * self.h
+                off = [1, rs, ss]
+                pos = [i.x, i.y, i.z]
+                lim = [self.w, self.h, self.d]
+                for n in range(3):
+                    vec = neigh(pos[n], lim[n])
+                    for v in vec:
+                        other = i.pos + (v - pos[n])*off[n]
+                        val = self.image[other].val
+                        i.flag += i.val ^ val
 
     def go(self):
         self.best = self.image
 
     def reset(self):
         self.image = self.best
+        self.resets += 1
         for i in self.image:
             i.reset()
+
+    def restart(self):
+        self.starts += 1
+        self.resets = 0
+        self.image = self.start_random()
 
     def getImg(self):
         image = []
@@ -73,7 +83,7 @@ class Pix(object):
         self.y = y
         self.z = z
         self.pos = z*size*size + y*size + x
-        self.val = random.randint(0, 1)
+        self.val = random.randint(0, 1)         # May find something better
         self.flag = 0
         self.changes = 0
 
@@ -84,4 +94,5 @@ class Pix(object):
 
     def reset(self):
         self.changes = 0
+        self.flag = 0
 
