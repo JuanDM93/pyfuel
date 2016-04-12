@@ -5,6 +5,15 @@ def opera(t, x, y):
         return x ^ y
 
 
+def norm(pdf):
+    for i in pdf:
+        if i is not 'total':
+            for j in range(len(pdf[i])):
+                if pdf['total'][j] != 0:
+                    pdf[i][j] /= pdf['total'][j] * 1.000
+    return pdf
+
+
 def setCont(limit, names):
     cont = {}
     for i in names:
@@ -20,12 +29,23 @@ class Contador(object):
     def __init__(self, width, height):
         self.w = width
         self.h = height
-        self.d = min(width, height)
+        self.d = max(width, height)
 
-        #   PDFs DIFF   --> To define...
+        # Info for faster revert ???
+        self.pix = 0
+
+        line_names = ['f2s1', 'flp1', 'f2s0', 'flp0', 'total']
+        self.line_ref = setCont(max(width, height), line_names)
+        self.line_result = setCont(max(width, height), line_names)
+
+        # Max Radius = 20
+        circle_names = ['PS1', 'PS0', 'total']
+        self.circle_ref = setCont(min(width, height, 20), circle_names)
+        self.circle_result = setCont(min(width, height, 20), circle_names)
+
+        # PDFs DIFF   --> To define...
+
     def errors(self, old, new):
-
-        acum = 0
         errors = 0
         for k in old.keys():
             if k is not 'total':
@@ -33,47 +53,112 @@ class Contador(object):
                     error = old[k][i] - new[k][i]
                     error *= error
                     errors += error
-                    acum += 1
-
-        errors /= 2 * acum
+        errors /= len(old['total'])
         return errors
 
-    def circles(self, pixels):
+    def corr(self, data, pix=1):
+        self.pix = pix
+        if pix == 1:
+            l_res = self.lines(data, self.line_ref, pix)
+            c_res = self.circles(data, self.circle_ref, pix)
+        else:
+            l_res = self.lines(data, self.line_result)
+            c_res = self.sphere(data, self.circle_result)
+        return norm(l_res), norm(c_res)
+
+    def circles(self, pixels, cont, first=0):
 
         width = self.w
         height = self.h
-        rmin = 2
-        rmax = 20
-        val = rmax
-        names = ['PS1', 'PS0', 'total']
-        cont = setCont(val, names)
+        rmin = 0                        # Should be 2
+        rmax = min(width, height, 20)
 
         maxH = height - rmin
         maxW = width - rmin
         for r in range(rmin, maxH):
             for c in range(rmin, maxW):
+
                 first_pix = pixels[r * width + c]
                 if first_pix == 0:
-                    flag = 1                                        # Negado
-                    cradio = min(rmax, c, width - c, r, height - r)
-                    for radio in range(rmin, cradio):
-                        radio2 = radio * radio
-                        for r2 in range(-radio, radio):
-                            for c2 in range(-radio, radio):
-                                if flag == 0:
-                                    break
-                                x = r2**2 + c2**2
-                                if min(x, radio2) == x:
-                                    valor = pixels[
-                                        (r + r2)*width + c2 + c
-                                    ]
-                                else:
-                                    valor = 1
-                                flag &= valor
-                            cont['PS1'][radio] += flag
+                    continue
+                flag = 1            # Negado
+                cradio = min(
+                    rmax, c, width - c - 1, r, height - r - 1
+                )
+                for radio in range(rmin, cradio + 1):
+                    radio2 = radio**2
+                    for r2 in range(-radio, radio + 1):
+                        if flag == 0:
+                            break
+                        for c2 in range(-radio, radio + 1):
+                            if flag == 0:
+                                break
+                            x = r2**2 + c2**2
+                            if min(x, radio2) == x:
+                                valor = pixels[
+                                    (r + r2)*width + c + c2
+                                ]
+                            else:
+                                valor = 1
+                            flag &= valor
+                    cont['PS1'][radio] += flag
+                    cont['total'][radio] += 1
         return cont
 
-    def lines(self, pixels, first=0):
+    def sphere(self, pixels, cont, first=0):
+
+        width = self.w
+        height = self.h
+        depth = min(width, height)
+        rmin = 0
+        rmax = min(width, height, 20)
+        rs = width
+        ss = width * height
+
+        maxD = depth - rmin
+        maxH = height - rmin
+        maxW = width - rmin
+
+        for d in range(rmin, maxD):
+            for r in range(rmin, maxH):
+                for c in range(rmin, maxW):
+
+                    first_pix = pixels[d * ss + r * rs + c]
+                    if first_pix == 0:
+                        continue
+
+                    flag = 1  # Negado
+                    cradio = min(
+                        rmax, c, width - c - 1, r, height - r - 1, d, depth - d - 1
+                    )
+
+                    for radio in range(rmin, cradio + 1):
+                        radio2 = radio ** 2
+
+                        for d2 in range(-radio, radio + 1):
+                            if flag == 0:
+                                break
+                            for r2 in range(-radio, radio + 1):
+                                if flag == 0:
+                                    break
+                                for c2 in range(-radio, radio + 1):
+                                    if flag == 0:
+                                        break
+                                    x = r2 ** 2 + c2 ** 2 + d2 ** 2
+                                    if min(x, radio2) == x:
+                                        valor = pixels[
+                                            (d + d2) * ss +
+                                            (r + r2) * rs +
+                                            (c + c2)
+                                            ]
+                                    else:
+                                        valor = 1
+                                    flag &= valor
+                        cont['PS1'][radio] += flag
+                        cont['total'][radio] += 1
+        return cont
+
+    def lines(self, pixels, cont, first=0):
         if first == 0:
             dim = 3
             depth = self.d
@@ -84,14 +169,13 @@ class Contador(object):
         height = self.h
         rs = width
         ss = width * height
-        val = max(width, height)
-        names = ['f2s1', 'flp1', 'f2s0', 'flp0', 'total']
-        cont = setCont(val, names)
 
         for d in range(depth):
             for r in range(height):
                 for c in range(width):
-                    first_pix = pixels[d*ss + r*rs + c]
+                    first_pix = pixels[
+                        d*ss + r*rs + c
+                    ]
 
                     #   t --> Opera 't'
                     if first_pix == 1:      # Find '1'
@@ -129,5 +213,4 @@ class Contador(object):
                             # FL
                             cont[b][ls] += flag
                             offset += delta_offset[i]
-
         return cont

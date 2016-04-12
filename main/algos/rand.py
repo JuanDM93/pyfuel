@@ -21,40 +21,68 @@ class MyRandom(object):
         self.w = w
         self.h = h
         self.d = max(w, h)
-        self.image = self.start_random()
-        self.best = self.image
         self.resets = 0
         self.starts = 1
 
-    def start_random(self):
+        self.zeros = []
+        self.ones = []
+
+    def new(self):
         img3 = []
+        zeros = []
+        ones = []
         for i in range(self.d):
             for j in range(self.h):
                 for k in range(self.w):
                     p = Pix(k, j, i, self.w)
                     img3.append(p)
-        return img3
+                    if p.val == 0:
+                        zeros.append(p)
+                    else:
+                        ones.append(p)
+        self.zeros = zeros
+        self.ones = ones
+        self.image = img3
+        return self.getImg()
+
+    # Swap random pixels with different phase
+    def simple_swap(self):
+        a = random.choice(self.zeros)
+        b = random.choice(self.ones)
+        pix = [a, b]
+        for i in pix:
+            i.change()
+        return self.getImg(), pix
+
+    # Swap DPN based
+    def swap(self, img):
+        pix = 0
+        pix += 1
+        return img, pix
 
     def rand_pix(self):
-        self.checkN()
-        for i in self.image:
-                i.change()
+        vec = self.checkN()
+        for i in vec:
+            i.change()
 
     # Should it check EVERY pixel????
     def checkN(self):
+        pix_change =[]
         for i in self.image:
-            if i.pos % 2 == 0:              # May use something better
-                rs = self.w
-                ss = self.w * self.h
-                off = [1, rs, ss]
-                pos = [i.x, i.y, i.z]
-                lim = [self.w, self.h, self.d]
-                for n in range(3):
-                    vec = neigh(pos[n], lim[n])
-                    for v in vec:
-                        other = i.pos + (v - pos[n])*off[n]
-                        val = self.image[other].val
-                        i.flag += i.val ^ val
+            rs = self.w
+            ss = self.w * self.h
+            off = [1, rs, ss]
+            pos = [i.x, i.y, i.z]
+            lim = [self.w, self.h, self.d]
+            for n in range(3):
+                vec = neigh(pos[n], lim[n])
+                for v in vec:
+                    other = i.pos + (v - pos[n])*off[n]
+                    val = self.image[other].val
+                    i.flag += i.val ^ val
+            if i.flag > 3 and i.changes < 2:
+                pix_change.append(i)
+        return pix_change
 
     def go(self):
         self.best = self.image
@@ -84,13 +112,12 @@ class Pix(object):
         self.z = z
         self.pos = z*size*size + y*size + x
         self.val = random.randint(0, 1)         # May find something better
-        self.flag = 0
+        self.flag = 0                           # Diff Neighbours
         self.changes = 0
 
     def change(self):
-        if self.flag > 3 > self.changes:
-            self.val = ~self.val + 2
-            self.changes += 1
+        self.val = ~self.val + 2
+        self.changes += 1
 
     def reset(self):
         self.changes = 0

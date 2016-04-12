@@ -1,6 +1,11 @@
+import time
 from process import Process
 from rand import MyRandom
-import time
+
+
+def message(data, start):
+    return '%3s in %.4s sec E: %.8s' % \
+           (data[0], time.time() - start, data[1])
 
 
 def norm(pdf):
@@ -11,17 +16,20 @@ def norm(pdf):
     return pdf
 
 
-def message(data, start):
-    return '%3s in %.4s sec E: %.8s' % \
-           (data[0], time.time() - start, data[1])
+def result(size, img):
+    col = []
+    for c in range(size):
+        row = []
+        for r in (range(size)):
+            row.append(img.pop().val)
+        col.append(row)
+    return col
 
 
 class Algorithm(Process):
 
     def __init__(self, cont, data):
         Process.__init__(self, 'algo')
-        w = cont.w
-        h = cont.h
         self.cont = cont
         lines = self.cont.lines(data, 1)
         # circles = self.caracter(False, data)       # Not sure if works
@@ -36,13 +44,13 @@ class Algorithm(Process):
 
         #   Compare results
         min_error = 0.001
-        run_limit = 10000
+        run_limit = 1000
 
         # Gen 0
         self.rand = MyRandom(self.cont.w, self.cont.h)
         rand_L0 = self.caracter(True, self.rand.getImg())
-        rand_L0 = norm(rand_L0)
         # rand_C0 = self.caracter(False, self.rand.getImg())
+        rand_L0 = norm(rand_L0)
         # rand_C0 = norm(rand_C0)
 
         best1 = self.check_error(self.lines, rand_L0)
@@ -61,6 +69,7 @@ class Algorithm(Process):
             else:
                 print "Well, IT may exist... " + \
                       message(tm, self.time)
+                print result(4, self.rand.image)
                 break
         else:
             print "God does not exist!!! " + \
@@ -80,7 +89,7 @@ class Algorithm(Process):
 
         error = e1  # + e2 / 2
 
-        if self.rand.resets < 2:
+        if self.rand.resets < 10:
             if best <= error:
                 self.rand.reset()
                 return best
