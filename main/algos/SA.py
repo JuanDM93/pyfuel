@@ -2,6 +2,8 @@ from rand import MyRandom
 from jaimes_alg import Contador
 from process import Process
 
+from main.draw.printer import *
+
 
 class Algo(Process):
     def __init__(self, img, w, h):        # img[]

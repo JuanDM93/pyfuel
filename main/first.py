@@ -15,10 +15,8 @@ class First(Process):
         w = data.get('head')[0]
         h = data.get('head')[1]
         data = data.get('data')
-        algo = Algo(data, w, h)
-        self.result = algo.result
+        printer = Printer(data, w, h)
+        self.result = printer.result
 
 pro = First(1)
 pro.start('main/infile')
-drawer = Printer()
-drawer.show(pro.result)
