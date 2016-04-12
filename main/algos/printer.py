@@ -4,7 +4,7 @@ from pygame.locals import *
 from OpenGL.GL import *
 from OpenGL.GLU import *
 
-from algos.SA import *
+from main.algos.SA import *
 
 
 class Printer(object):
@@ -12,6 +12,31 @@ class Printer(object):
         self.w = w
         self.h = h
         self.data = data
+
+        self.main()
+
+    def main(self):
+        width = 720.0
+        height = 480.0
+
+        pygame.init()       # We initialise the pygame module.
+
+        pygame.display.set_mode(
+            (int(width), int(height)),          # We set the window width and height
+            HWSURFACE | OPENGL | DOUBLEBUF,     # We set flags.
+            32)                                 # Indicator colors are coded on 24 bits.
+        self.initGL(width, height)              # Call to initialise function.
+        self.mainloop()                         # We call our display function: mainloop.
+
+    def initGL(self, width, height):
+
+        glClearColor(0.0, 0.0, 0.0, 0.0)    # Define clear color [0.0-1.0]
+
+        glEnable(GL_DEPTH_TEST)             # Enable GL depth functions.
+
+        glShadeModel(GL_FLAT)               # Define lines as polygon instead of full polygon: GL_SMOOTH.
+
+        self.resizeGL(width, height)             # Call to the resize function.
 
     def resizeGL(self, width, height):
         fov_angle = 60.0                    # Angle of eye view.
@@ -36,18 +61,10 @@ class Printer(object):
 
         glMatrixMode(GL_MODELVIEW)          # Enable modelview matrix as current matrix.
 
-    def initGL(self, width, height):
-
-        glClearColor(0.0, 0.0, 0.0, 0.0)    # Define clear color [0.0-1.0]
-
-        glEnable(GL_DEPTH_TEST)             # Enable GL depth functions.
-
-        glShadeModel(GL_FLAT)               # Define lines as polygon instead of full polygon: GL_SMOOTH.
-
-        self.resizeGL(width, height)             # Call to the resize function.
-
     def mainloop(self):
         a = Algo(self.data, self.w, self.h)
+        f = True
+
         while True:
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
@@ -55,62 +72,51 @@ class Printer(object):
                 if event.type == QUIT:
                     quit()
                 elif event.type == KEYDOWN:
-                    pass
+                    if f is True:
+                        f = False
+                    else:
+                        f = True
+
                 # Should get more functions...
 
             # Main functions:
+            if f is True:
+                self.img3d(a.rand_img)
+            else:
+                self.img2d()
+            #self.histo(a.ref)
 
-            self.img2d(a.ref)
-            self.img3d(a.result)
-            self.histo(a.cont.line_result)
-
+            glRotate(1, 1, 1, 1)
             pygame.display.flip()
             pygame.time.wait(10)
 
+    def img2d(self):
+        glEnable(GL_TEXTURE_2D)
+        glHint(GL_POINT_SMOOTH_HINT, GL_NICEST)
+        glEnable(GL_POINT_SMOOTH)
+        glPointSize(10)
 
+        lim = min(self.w, self.h)
+        data = self.data
+        c = 0
 
-    def img3d(self, pix):
+        glBegin(GL_POINTS)
+        for i in range(lim):
+            for j in range(lim):
+                glColor3f(data[c], data[c], 1)
+                glVertex2i(j, i)
+        glEnd()
+
+    def img3d(self, pixls):
         glEnable(GL_TEXTURE_3D)
         glHint(GL_POINT_SMOOTH_HINT, GL_NICEST)
         glEnable(GL_POINT_SMOOTH)
         glPointSize(10)
 
-        pixls = []
-
-        for i in range(4):
-            for j in range(4):
-                for k in range(4):
-                    pixls.append((k, j, i))
-
         glBegin(GL_POINTS)
         for p in pixls:
-            if p[1] % 2 == 0:
-                glColor3f(1, 1, 1)
-            else:
-                glColor3f(0, 0, 1)
-            glVertex3f(p[0], p[1], p[2])
-        glEnd()
-
-        glRotate(1, 1, 1, 1)
-
-    def img2d(self, pix):
-        glEnable(GL_TEXTURE_2D)
-        glHint(GL_POINT_SMOOTH_HINT, GL_NICEST)
-        glEnable(GL_POINT_SMOOTH)
-        glPointSize(5)
-
-        pix = (
-            (1, 1, 1, 1),
-            (0, 0, 0, 0),
-            (1, 1, 1, 1),
-            (0, 0, 0, 0)
-        )
-
-        glBegin(GL_POINTS)
-        for i in range(4):
-            for j in range(4):
-                glColor3f(pix[i][j], pix[i][j], 1)
-                glVertex2i(j, i)
+            glColor3f(p.val, p.val, 1)
+            glVertex3f(p.x, p.y, p.z)
         glEnd()
 
     def histo(self, pix):
@@ -141,15 +147,3 @@ class Printer(object):
             glVertex2i(pix[i][0], pix[i][1])
         glEnd()
 
-    def main(self):
-        width = 720.0
-        height = 480.0
-
-        pygame.init()       # We initialise the pygame module.
-
-        pygame.display.set_mode(
-            (int(width), int(height)),          # We set the window width and height
-            HWSURFACE | OPENGL | DOUBLEBUF,     # We set flags.
-            32)                                 # Indicator colors are coded on 24 bits.
-        self.initGL(width, height)                   # Call to initialise function.
-        self.mainloop()                              # We call our display function: mainloop.

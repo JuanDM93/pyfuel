@@ -43,9 +43,7 @@ class Contador(object):
         self.circle_ref = setCont(min(width, height, 20), circle_names)
         self.circle_result = setCont(min(width, height, 20), circle_names)
 
-        # PDFs DIFF   --> To define...
-
-    def errors(self, old, new):
+    def errors(self, old, new):             # PDFs DIFF   --> To define...
         errors = 0
         for k in old.keys():
             if k is not 'total':
@@ -56,12 +54,19 @@ class Contador(object):
         errors /= len(old['total'])
         return errors
 
+    def getImg(self, data):
+        image = []
+        for i in data:
+            image.append(i.val)
+        return image
+
     def corr(self, data, pix=1):
         self.pix = pix
         if pix == 1:
             l_res = self.lines(data, self.line_ref, pix)
             c_res = self.circles(data, self.circle_ref, pix)
         else:
+            data = self.getImg(data)
             l_res = self.lines(data, self.line_result)
             c_res = self.sphere(data, self.circle_result)
         return norm(l_res), norm(c_res)

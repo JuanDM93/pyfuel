@@ -43,7 +43,7 @@ class MyRandom(object):
         self.zeros = zeros
         self.ones = ones
         self.image = img3
-        return self.getImg()
+        return img3
 
     # Swap random pixels with different phase
     def simple_swap(self):
@@ -97,12 +97,6 @@ class MyRandom(object):
         self.starts += 1
         self.resets = 0
         self.image = self.start_random()
-
-    def getImg(self):
-        image = []
-        for i in self.image:
-            image.append(i.val)
-        return image
 
 
 class Pix(object):

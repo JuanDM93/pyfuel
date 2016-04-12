@@ -1,5 +1,5 @@
 from algos.SA import *
-from draw.printer import Printer
+from main.algos.printer import Printer
 
 class First(Process):
 
@@ -16,7 +16,6 @@ class First(Process):
         h = data.get('head')[1]
         data = data.get('data')
         printer = Printer(data, w, h)
-        self.result = printer.result
 
 pro = First(1)
 pro.start('main/infile')

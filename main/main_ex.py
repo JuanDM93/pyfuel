@@ -1,5 +1,5 @@
 #import sys
-from draw.printer import Printer
+from main.algos.printer import Printer
 from main.algos.process import Process
 
 

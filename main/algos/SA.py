@@ -1,29 +1,31 @@
-from rand import MyRandom
 from jaimes_alg import Contador
+from rand import MyRandom
 from process import Process
-
-from main.draw.printer import *
 
 
 class Algo(Process):
     def __init__(self, img, w, h):        # img[]
         Process.__init__(self, 'SA')
+        self.ref, self.ene = [None, None]
+
         self.tol = 0.0001
         self.max_ite = 1000
+        self.ite = 0
+        self.ite_fail = 0
 
         self.cont = Contador(w, h)
         self.rand = MyRandom(w, h)
 
         self.ref = self.cont.corr(img)
-        rand_img, self.ene = self.pre_start()
+        self.rand_img, self.ene = self.pos_init()
 
-        self.ite = 0
-        self.ite_fail = 0
-        self.start(rand_img)
-
-    # Normal swapping (RANDOM)
-    def pre_start(self):
+    def pos_init(self):
         rand_img = self.rand.new()
+        rand_ref = self.cont.corr(rand_img, 0)
+        return rand_img, rand_ref
+
+    def pre_start(self):                                # Normal swapping (RANDOM)
+        rand_img = self.rand_img
         rand_ref = self.cont.corr(rand_img, 0)
         ene = self.cont.errors(self.ref, rand_ref)
         while ene > self.tol * 100:                     # Initial tolerance
@@ -35,8 +37,8 @@ class Algo(Process):
                 ene = n_ene
         return rand_img, ene
 
-    # DPN swapping with threshold
-    def start(self, img):
+    def start(self, info=None):                                    # DPN swapping with threshold
+        img = self.rand_img
         ini_ite = 0
         p = 0.5                                         # More reading
         delta_e = []
