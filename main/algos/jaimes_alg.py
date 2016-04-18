@@ -60,8 +60,7 @@ class Contador(object):
     def set_one(self, data):
         cont = 0
         for p in data:
-            if p.val is 1:
-                cont += 1
+            cont += p.val
         return 1.0 * cont / len(data), (len(data) - cont) / len(data) * 1.0
 
     def getImg(self, data):
