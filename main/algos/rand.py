@@ -3,16 +3,15 @@ import random
 
 
 def neigh(x, lim):
-        vec = []
-        if x > 0:
-            vec.append(-1)
-        if x < lim - 1:
-            vec.append(1)
-        neig = []
-        for v in vec:
-            neig.append(x + v)
-
-        return neig
+    vec = []
+    if x > 0:
+        vec.append(-1)
+    if x < lim - 1:
+        vec.append(1)
+    neig = []
+    for v in vec:
+        neig.append(x + v)
+    return neig
 
 
 class MyRandom(object):
@@ -24,26 +23,41 @@ class MyRandom(object):
         self.resets = 0
         self.starts = 1
 
-        self.zeros = []
-        self.ones = []
+        self.image = []
+
+    def circled(self, circles):
+        cont1 = 0
+        for r in range(self.w - 1, -1, -1):
+            c = circles['PS1'][r] * circles['total'][r]
+            if c > 0:
+                for p in range(int(c - cont1)):
+                    pix = random.choice(self.image)
+                    self.circled_grow(pix, r, cont1)
+        return self.image
+
+    def circled_grow(self, pix, radius, cont1):
+        pix.val = 1
+        cont1 += 1
+        rs = self.w
+        ss = self.w * self.h
+        off = [1, rs, ss]
+        pos = [pix.x, pix.y, pix.z]
+        lim = [self.w, self.h, self.d]
+        for n in range(3):
+            vec = neigh(pos[n], lim[n])
+            for v in vec:
+                other = pix.pos + (v - pos[n]) * off[n]
+                self.image[other].val = 1
+        return cont1
 
     def new(self):
         img3 = []
-        zeros = []
-        ones = []
         for i in range(self.d):
             for j in range(self.h):
                 for k in range(self.w):
                     p = Pix(k, j, i, self.w)
                     img3.append(p)
-                    if p.val == 0:
-                        zeros.append(p)
-                    else:
-                        ones.append(p)
-        self.zeros = zeros
-        self.ones = ones
         self.image = img3
-        return img3
 
     # Swap random pixels with different phase
     def simple_swap(self):
@@ -67,7 +81,7 @@ class MyRandom(object):
 
     # Should it check EVERY pixel????
     def checkN(self):
-        pix_change =[]
+        pix_change = []
         for i in self.image:
             rs = self.w
             ss = self.w * self.h
@@ -105,7 +119,8 @@ class Pix(object):
         self.y = y
         self.z = z
         self.pos = z*size*size + y*size + x
-        self.val = random.randint(0, 1)         # May find something better
+        self.val = 0
+        #self.val = random.randint(0, 1)         # May find something better
         self.flag = 0                           # Diff Neighbours
         self.changes = 0
 

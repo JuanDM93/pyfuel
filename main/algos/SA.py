@@ -17,12 +17,21 @@ class Algo(Process):
         self.rand = MyRandom(w, h)
 
         self.ref = self.cont.corr(img)
+        #self.one_ref = self.cont.set_one()
+        self.one_res = (0, 0)
         self.rand_img, self.ene = self.pos_init()
+        #self.pre_start()
 
     def pos_init(self):
-        rand_img = self.rand.new()
+        self.rand.new()
+        rand_img = self.rand.circled(self.cont.circle_ref)
+        #rand_img = self.rand.circled(self.cont.circle_ref)
         rand_ref = self.cont.corr(rand_img, 0)
+        self.one_res = self.cont.set_one(rand_img)
         return rand_img, rand_ref
+
+    def circled(self):
+        self.rand_img = self.rand.circled(self.cont.circle_ref)
 
     def pre_start(self):                                # Normal swapping (RANDOM)
         rand_img = self.rand_img

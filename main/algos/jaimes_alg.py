@@ -29,14 +29,17 @@ class Contador(object):
     def __init__(self, width, height):
         self.w = width
         self.h = height
-        self.d = max(width, height)
+        self.d = min(width, height)
 
         # Info for faster revert ???
         self.pix = 0
 
+        self.ones = 0
+        self.zeros = 0
+
         line_names = ['f2s1', 'flp1', 'f2s0', 'flp0', 'total']
-        self.line_ref = setCont(max(width, height), line_names)
-        self.line_result = setCont(max(width, height), line_names)
+        self.line_ref = setCont(min(width, height), line_names)
+        self.line_result = setCont(min(width, height), line_names)
 
         # Max Radius = 20
         circle_names = ['PS1', 'PS0', 'total']
@@ -54,6 +57,13 @@ class Contador(object):
         errors /= len(old['total'])
         return errors
 
+    def set_one(self, data):
+        cont = 0
+        for p in data:
+            if p.val is 1:
+                cont += 1
+        return 1.0 * cont / len(data), (len(data) - cont) / len(data) * 1.0
+
     def getImg(self, data):
         image = []
         for i in data:
@@ -70,6 +80,7 @@ class Contador(object):
             l_res = self.lines(data, self.line_result)
             c_res = self.sphere(data, self.circle_result)
         return norm(l_res), norm(c_res)
+        #return l_res, c_res
 
     def circles(self, pixels, cont, first=0):
 
@@ -129,10 +140,9 @@ class Contador(object):
                 for c in range(rmin, maxW):
 
                     first_pix = pixels[d * ss + r * rs + c]
-                    if first_pix == 0:
-                        continue
 
-                    flag = 1  # Negado
+                    #flag = 1  # Negado
+                    flag = first_pix
                     cradio = min(
                         rmax, c, width - c - 1, r, height - r - 1, d, depth - d - 1
                     )

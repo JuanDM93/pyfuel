@@ -1,8 +1,8 @@
 from algos.SA import *
 from main.algos.printer import Printer
 
-class First(Process):
 
+class First(Process):
     def start(self, source):
         io = self.io
         txt = io.pix_txt(source)
