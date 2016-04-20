@@ -39,9 +39,9 @@ class Printer(object):
         self.resizeGL(width, height)             # Call to the resize function.
 
     def resizeGL(self, width, height):
-        fov_angle = 60.0                    # Angle of eye view.
-        z_near = 10.0                        # Distance from the user from the screen.
-        z_far = 10000.0                      # Distance in depth.
+        fov_angle = 40.0                    # Angle of eye view.
+        z_near = 1.0                        # Distance from the user from the screen.
+        z_far = 1000.0                      # Distance in depth.
 
         glMatrixMode(GL_PROJECTION)         # Enable Projection matrix configuration.
         glLoadIdentity()
@@ -67,8 +67,7 @@ class Printer(object):
             ### Get it better
             v_x = x - l_pos[0]
             v_y = y - l_pos[1]
-            glRotate(v_x, 0, 1, 0)
-            glRotate(v_y, 1, 0, 0)
+            glRotate(1, v_y, v_x, 0)
             #glRotate(1,0,0,1)
             glTranslate(0, 0, z)
 
@@ -89,7 +88,7 @@ class Printer(object):
                 if event.type == QUIT:
                     quit()
                 elif event.type == KEYUP:
-                    a.circled()
+                    a.refill()
                 elif event.type == MOUSEBUTTONDOWN:
                     if event.button is 4:
                         z = 1
@@ -116,6 +115,18 @@ class Printer(object):
             pygame.display.flip()
             pygame.time.wait(10)
 
+    def img3d(self, pixls):
+        glEnable(GL_TEXTURE_3D)
+        glHint(GL_POINT_SMOOTH_HINT, GL_NICEST)
+        glEnable(GL_POINT_SMOOTH)
+        glPointSize(3)
+
+        glBegin(GL_POINTS)
+        for p in pixls:
+            glColor3f(p.val, p.val, 1)
+            glVertex3f(p.x, p.y, p.z)
+        glEnd()
+
     def img2d(self):
         glEnable(GL_TEXTURE_2D)
         glHint(GL_POINT_SMOOTH_HINT, GL_NICEST)
@@ -131,18 +142,6 @@ class Printer(object):
             for j in range(lim):
                 glColor3f(data[c], data[c], 1)
                 glVertex2i(j, i)
-        glEnd()
-
-    def img3d(self, pixls):
-        glEnable(GL_TEXTURE_3D)
-        glHint(GL_POINT_SMOOTH_HINT, GL_NICEST)
-        glEnable(GL_POINT_SMOOTH)
-        glPointSize(5)
-
-        glBegin(GL_POINTS)
-        for p in pixls:
-            glColor3f(p.val, p.val, 1)
-            glVertex3f(p.x, p.y, p.z)
         glEnd()
 
     def histo(self, pix):

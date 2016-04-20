@@ -25,30 +25,59 @@ class MyRandom(object):
 
         self.image = []
 
-    def circled(self, circles):
+    def circled(self, c_ref):
+        cont0 = 0
         cont1 = 0
-        for r in range(self.w - 1, -1, -1):
-            c = circles['PS1'][r] * circles['total'][r]
+        lim = len(c_ref['total'])
+        for r in range(lim - 1, -1, -1):
+            c = c_ref['PS1'][r] * c_ref['total'][r]
             if c > 0:
-                for p in range(int(c - cont1)):
+                for p in range(int(c - cont0)):
                     pix = random.choice(self.image)
-                    self.circled_grow(pix, r, cont1)
+                    self.circled_grow(pix, r)
+                    cont1 += 1
+                cont0 = cont1
         return self.image
 
-    def circled_grow(self, pix, radius, cont1):
+    def circled_grow(self, pix, radius):
         pix.val = 1
-        cont1 += 1
-        rs = self.w
-        ss = self.w * self.h
-        off = [1, rs, ss]
-        pos = [pix.x, pix.y, pix.z]
-        lim = [self.w, self.h, self.d]
+
+        width = self.w
+        height = self.h
+        depth = min(width, height)
+        rmin = 1
+        rmax = min(width, height, radius)
+        rs = width
+        ss = width * height
+        d, r, c = (pix.x, pix.y, pix.z)
+
+        cradio = min(
+            rmax,
+            c, self.w - c - 1,
+            r, self.h - r - 1,
+            d, depth - d - 1
+        )
+        #cradio = radius
+
+        for radio in range(rmin, cradio + 1):
+            radio2 = radio ** 2
+            for d2 in range(-radio, radio + 1):
+                for r2 in range(-radio, radio + 1):
+                    for c2 in range(-radio, radio + 1):
+                        x = r2 ** 2 + c2 ** 2 + d2 ** 2
+                        if min(x, radio2) == x:
+                            other = pix.pos + (d2 * ss) + (r2 * rs) + c2
+                            self.image[other].val = 1
+
+        """
         for n in range(3):
             vec = neigh(pos[n], lim[n])
             for v in vec:
                 other = pix.pos + (v - pos[n]) * off[n]
                 self.image[other].val = 1
-        return cont1
+
+        """
+
 
     def new(self):
         img3 = []
@@ -69,10 +98,13 @@ class MyRandom(object):
         return self.getImg(), pix
 
     # Swap DPN based
-    def swap(self, img):
-        pix = 0
-        pix += 1
-        return img, pix
+    def swap(self, cont):
+        while cont > 0:
+            pix = random.choice(self.image)
+            if pix.val is 0:
+                pix.val = 1
+                cont -= 1
+        return self.image
 
     def rand_pix(self):
         vec = self.checkN()

@@ -39,12 +39,20 @@ class Contador(object):
 
         line_names = ['f2s1', 'flp1', 'f2s0', 'flp0', 'total']
         self.line_ref = setCont(min(width, height), line_names)
-        self.line_result = setCont(min(width, height), line_names)
 
         # Max Radius = 20
         circle_names = ['PS1', 'PS0', 'total']
         self.circle_ref = setCont(min(width, height, 20), circle_names)
-        self.circle_result = setCont(min(width, height, 20), circle_names)
+
+        self.line_result, self.circle_result = self.set_cont()
+
+    def set_cont(self):
+        l_name = ['f2s1', 'flp1', 'f2s0', 'flp0', 'total']
+        c_name = ['PS1', 'PS0', 'total']
+
+        line = setCont(min(self.w, self.h), l_name)
+        circle = setCont(min(self.w, self.h, 20), c_name)
+        return line, circle
 
     def errors(self, old, new):             # PDFs DIFF   --> To define...
         errors = 0
@@ -57,11 +65,18 @@ class Contador(object):
         errors /= len(old['total'])
         return errors
 
+    def get_one(self, data):
+        cont = 0
+        for i in data:
+            cont += i
+        return 1.0 * cont / len(data), (len(data) - cont) * 1.0 / len(data)
+
     def set_one(self, data):
         cont = 0
         for p in data:
             cont += p.val
-        return 1.0 * cont / len(data), (len(data) - cont) / len(data) * 1.0
+        #return cont, len(data) - cont
+        return 1.0 * cont / len(data), (len(data) - cont) * 1.0 / len(data)
 
     def getImg(self, data):
         image = []
@@ -76,6 +91,7 @@ class Contador(object):
             c_res = self.circles(data, self.circle_ref, pix)
         else:
             data = self.getImg(data)
+            self.line_result, self.circle_result = self.set_cont()
             l_res = self.lines(data, self.line_result)
             c_res = self.sphere(data, self.circle_result)
         return norm(l_res), norm(c_res)
@@ -101,17 +117,17 @@ class Contador(object):
                     rmax, c, width - c - 1, r, height - r - 1
                 )
                 for radio in range(rmin, cradio + 1):
-                    radio2 = radio**2
+                    radio2 = radio ** 2
                     for r2 in range(-radio, radio + 1):
                         if flag == 0:
                             break
                         for c2 in range(-radio, radio + 1):
                             if flag == 0:
                                 break
-                            x = r2**2 + c2**2
+                            x = r2 ** 2 + c2 ** 2
                             if min(x, radio2) == x:
                                 valor = pixels[
-                                    (r + r2)*width + c + c2
+                                    (r + r2) * width + c + c2
                                 ]
                             else:
                                 valor = 1
