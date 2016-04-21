@@ -39,9 +39,9 @@ class Printer(object):
         self.resizeGL(width, height)             # Call to the resize function.
 
     def resizeGL(self, width, height):
-        fov_angle = 40.0                    # Angle of eye view.
-        z_near = 1.0                        # Distance from the user from the screen.
-        z_far = 1000.0                      # Distance in depth.
+        fov_angle = 45.0                        # Angle of eye view.
+        z_near = 0.1                           # Distance from the user from the screen.
+        z_far = 100                         # Distance in depth.
 
         glMatrixMode(GL_PROJECTION)         # Enable Projection matrix configuration.
         glLoadIdentity()
@@ -67,28 +67,35 @@ class Printer(object):
             ### Get it better
             v_x = x - l_pos[0]
             v_y = y - l_pos[1]
-            glRotate(1, v_y, v_x, 0)
-            #glRotate(1,0,0,1)
+
             glTranslate(0, 0, z)
+            glRotate(1, v_y, 0, 0)
+            glRotate(1, 0, v_x, 0)
 
     def mainloop(self):
+        #Algo
         a = Algo(self.data, self.w, self.h)
+        action = 0
+        flag = True
+
+        #Djent
         active = False
         pos = (0, 0)
         l_pos = pos
-        is_cube = False
         z = 0
+
+        is_cube = False
 
         while True:
             if pos is not l_pos:
                 self.djent(active, pos, l_pos, z)
             l_pos = pos
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
             for event in pygame.event.get():
                 if event.type == QUIT:
                     quit()
                 elif event.type == KEYUP:
-                    a.refill()
+                    action += 1
+                    flag = True
                 elif event.type == MOUSEBUTTONDOWN:
                     if event.button is 4:
                         z = 1
@@ -111,6 +118,14 @@ class Printer(object):
 
             glRotate(1, 1, 1, 1)
             """
+            if a.change() and flag:
+                if action is 1:
+                    flag = a.process()
+                elif action is 2:
+                    flag = a.refill()
+                    action = -1
+
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
             self.img3d(a.rand_img)
             pygame.display.flip()
             pygame.time.wait(10)

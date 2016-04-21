@@ -19,22 +19,38 @@ class Algo(Process):
         self.ref = self.cont.corr(img)
         self.one_ref = self.cont.get_one(img)
         self.one_res = (0, 0)
-        self.rand_img, self.ene = self.pos_init()
+        self.ene = 0
+        self.rand_img = self.rand.new()
+        #self.rand_img, self.ene = self.pos_init()
         #self.pre_start()
 
-    def pos_init(self):
-        self.rand.new()
-        rand_img = self.rand.circled(self.cont.circle_ref)
-        rand_ref = self.cont.corr(rand_img, 0)
-        self.one_res = self.cont.set_one(rand_img)
-        return rand_img, rand_ref
+    def change(self):
+        if len(self.rand.i_change) > 0:
+            pix = self.rand.i_change.pop()
+            pix.val = 1
+            return False
+        else:
+            return True
+
+    def process(self):
+        self.rand_img = self.rand.circled(self.cont.circle_ref)
+        self.ene = self.cont.corr(self.rand_img, 0)
+        self.one_res = self.cont.set_one(self.rand_img)
+        return False
 
     def refill(self):
         lmax = self.one_ref[0] * len(self.rand_img)
         lmin = self.one_res[0] * len(self.rand_img)
-        self.rand_img = self.rand.swap(int(lmax - lmin))
+        self.rand.swap(int(lmax - lmin))
         self.one_res = self.cont.set_one(self.rand_img)
         self.ene = self.cont.corr(self.rand_img, 0)
+        return False
+
+    def pos_init(self):
+        rand_img = self.rand.circled(self.cont.circle_ref)
+        rand_ref = self.cont.corr(rand_img, 0)
+        self.one_res = self.cont.set_one(rand_img)
+        return rand_img, rand_ref
 
     def pre_start(self):                                # Normal swapping (RANDOM)
         rand_img = self.rand_img

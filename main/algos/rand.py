@@ -24,6 +24,9 @@ class MyRandom(object):
         self.starts = 1
 
         self.image = []
+        self.i_change = []
+
+        self.ones, self.zeros = ([], [])
 
     def circled(self, c_ref):
         cont0 = 0
@@ -40,7 +43,8 @@ class MyRandom(object):
         return self.image
 
     def circled_grow(self, pix, radius):
-        pix.val = 1
+        self.i_change.append(pix)
+        #pix.val = 1
 
         width = self.w
         height = self.h
@@ -67,7 +71,10 @@ class MyRandom(object):
                         x = r2 ** 2 + c2 ** 2 + d2 ** 2
                         if min(x, radio2) == x:
                             other = pix.pos + (d2 * ss) + (r2 * rs) + c2
-                            self.image[other].val = 1
+                            #self.image[other].val = 1
+                            self.i_change.append(
+                                self.image[other]
+                            )
 
         """
         for n in range(3):
@@ -78,7 +85,6 @@ class MyRandom(object):
 
         """
 
-
     def new(self):
         img3 = []
         for i in range(self.d):
@@ -86,7 +92,13 @@ class MyRandom(object):
                 for k in range(self.w):
                     p = Pix(k, j, i, self.w)
                     img3.append(p)
+                    if p.val is 0:
+                        self.zeros.append(p)
+                    else:
+                        self.ones.append(p)
+
         self.image = img3
+        return self.image
 
     # Swap random pixels with different phase
     def simple_swap(self):
@@ -97,14 +109,14 @@ class MyRandom(object):
             i.change()
         return self.getImg(), pix
 
-    # Swap DPN based
     def swap(self, cont):
         while cont > 0:
-            pix = random.choice(self.image)
-            if pix.val is 0:
-                pix.val = 1
-                cont -= 1
-        return self.image
+            pix = random.choice(self.zeros)
+            self.zeros.remove(pix)
+            self.ones.append(pix)
+            self.i_change.append(pix)
+            #pix.val = 1
+            cont -= 1
 
     def rand_pix(self):
         vec = self.checkN()

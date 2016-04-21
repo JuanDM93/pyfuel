@@ -8,12 +8,15 @@ class First(Process):
         txt = io.pix_txt(source)
         size = len(txt)
         #   HEADER SIZE ???
+        # 0xfff 0xfff --> 0xfff(w)0xfff(h)data:01010101010
         data = {
-            'head': io.read_Data(txt, 0, 2),
-            'data': io.read_Data(txt, 2, size)
+            'head': io.read_Head(txt, 0, 10),
+            'data': io.read_Data(txt, 10, size)
         }
+
         w = data.get('head')[0]
         h = data.get('head')[1]
+
         data = data.get('data')
         printer = Printer(data, w, h)
 

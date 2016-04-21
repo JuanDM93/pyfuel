@@ -5,12 +5,11 @@ def opera(t, x, y):
         return x ^ y
 
 
-def norm(pdf):
+def norm(pdf, total):
     for i in pdf:
         if i is not 'total':
             for j in range(len(pdf[i])):
-                if pdf['total'][j] != 0:
-                    pdf[i][j] /= pdf['total'][j] * 1.000
+                pdf[i][j] /= total * 1.000
     return pdf
 
 
@@ -94,7 +93,7 @@ class Contador(object):
             self.line_result, self.circle_result = self.set_cont()
             l_res = self.lines(data, self.line_result)
             c_res = self.sphere(data, self.circle_result)
-        return norm(l_res), norm(c_res)
+        return norm(l_res, len(data)), norm(c_res, len(data))
         #return l_res, c_res
 
     def circles(self, pixels, cont, first=0):
