@@ -32,7 +32,7 @@ class Algo(Process):
         else:
             return True
 
-    def process(self):
+    def pre_start(self):
         self.rand_img = self.rand.circled(self.cont.circle_ref)
         self.ene = self.cont.corr(self.rand_img, 0)
         self.one_res = self.cont.set_one(self.rand_img)
@@ -46,13 +46,7 @@ class Algo(Process):
         self.ene = self.cont.corr(self.rand_img, 0)
         return False
 
-    def pos_init(self):
-        rand_img = self.rand.circled(self.cont.circle_ref)
-        rand_ref = self.cont.corr(rand_img, 0)
-        self.one_res = self.cont.set_one(rand_img)
-        return rand_img, rand_ref
-
-    def pre_start(self):                                # Normal swapping (RANDOM)
+    def sa_start(self):                                # Normal swapping (RANDOM)
         rand_img = self.rand_img
         rand_ref = self.cont.corr(rand_img, 0)
         ene = self.cont.errors(self.ref, rand_ref)

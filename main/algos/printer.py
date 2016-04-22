@@ -34,13 +34,13 @@ class Printer(object):
 
         glEnable(GL_DEPTH_TEST)             # Enable GL depth functions.
 
-        glShadeModel(GL_SMOOTH)               # Define lines as polygon instead of full polygon: GL_SMOOTH. GL_FLAT
+        glShadeModel(GL_SMOOTH)             # Define lines as polygon instead of full polygon: GL_SMOOTH. GL_FLAT
 
-        self.resizeGL(width, height)             # Call to the resize function.
+        self.resizeGL(width, height)        # Call to the resize function.
 
     def resizeGL(self, width, height):
-        fov_angle = 45.0                        # Angle of eye view.
-        z_near = 0.1                           # Distance from the user from the screen.
+        fov_angle = 30.0                    # Angle of eye view.
+        z_near = 0.1                        # Distance from the user from the screen.
         z_far = 100                         # Distance in depth.
 
         glMatrixMode(GL_PROJECTION)         # Enable Projection matrix configuration.
@@ -88,6 +88,7 @@ class Printer(object):
 
         while True:
             if pos is not l_pos:
+                self.resizeGL(self.w, self.h)
                 self.djent(active, pos, l_pos, z)
             l_pos = pos
             for event in pygame.event.get():
@@ -120,9 +121,11 @@ class Printer(object):
             """
             if a.change() and flag:
                 if action is 1:
-                    flag = a.process()
+                    flag = a.pre_start()
                 elif action is 2:
                     flag = a.refill()
+                elif action is 3:
+                    flag = a.sa_start()
                     action = -1
 
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
