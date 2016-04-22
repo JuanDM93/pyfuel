@@ -21,4 +21,4 @@ class First(Process):
         printer = Printer(data, w, h)
 
 pro = First(1)
-pro.start('main/infile')
+pro.start('infile')
