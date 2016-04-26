@@ -19,16 +19,13 @@ def setCont(limit, names):
         cont[i] = [0] * limit
     return cont
 
-#   Define HEADER x bytes
-#   0123 <-Type (cir, lin, etc) 4567 <-(size, width, height, etc)
-
 
 class Contador(object):
 
     def __init__(self, width, height):
         self.w = width
         self.h = height
-        self.d = min(width, height)
+        self.d = max(width, height)
 
         # Info for faster revert ???
         self.pix = 0
@@ -37,11 +34,11 @@ class Contador(object):
         self.zeros = 0
 
         line_names = ['f2s1', 'flp1', 'f2s0', 'flp0', 'total']
-        self.line_ref = setCont(min(width, height), line_names)
+        self.line_ref = setCont(max(width, height), line_names)
 
         # Max Radius = 20
         circle_names = ['PS1', 'PS0', 'total']
-        self.circle_ref = setCont(min(width, height, 20), circle_names)
+        self.circle_ref = setCont(max(width, height, 20), circle_names)
 
         self.line_result, self.circle_result = self.set_cont()
 
@@ -49,8 +46,8 @@ class Contador(object):
         l_name = ['f2s1', 'flp1', 'f2s0', 'flp0', 'total']
         c_name = ['PS1', 'PS0', 'total']
 
-        line = setCont(min(self.w, self.h), l_name)
-        circle = setCont(min(self.w, self.h, 20), c_name)
+        line = setCont(max(self.w, self.h), l_name)
+        circle = setCont(max(self.w, self.h, 20), c_name)
         return line, circle
 
     def errors(self, old, new):             # PDFs DIFF   --> To define...
@@ -74,7 +71,6 @@ class Contador(object):
         cont = 0
         for p in data:
             cont += p.val
-        #return cont, len(data) - cont
         return 1.0 * cont / len(data), (len(data) - cont) * 1.0 / len(data)
 
     def getImg(self, data):
@@ -94,7 +90,6 @@ class Contador(object):
             l_res = self.lines(data, self.line_result)
             c_res = self.sphere(data, self.circle_result)
         return norm(l_res, len(data)), norm(c_res, len(data))
-        #return l_res, c_res
 
     def circles(self, pixels, cont, first=0):
 
@@ -155,7 +150,6 @@ class Contador(object):
 
                     first_pix = pixels[d * ss + r * rs + c]
 
-                    #flag = 1  # Negado
                     flag = first_pix
                     cradio = min(
                         rmax, c, width - c - 1, r, height - r - 1, d, depth - d - 1
@@ -188,7 +182,7 @@ class Contador(object):
         return cont
 
     def lines(self, pixels, cont, first=0):
-        if first == 0:
+        if first is 0:
             dim = 3
             depth = self.d
         else:

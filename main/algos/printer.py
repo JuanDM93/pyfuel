@@ -11,13 +11,14 @@ class Printer(object):
     def __init__(self, data, w, h):
         self.w = w
         self.h = h
+        self.d = max(w, h)
         self.data = data
 
         self.main()
 
     def main(self):
-        width = 720.0
-        height = 480.0
+        width = 1024.0
+        height = 720.0
 
         pygame.init()       # We initialise the pygame module.
 
@@ -39,9 +40,9 @@ class Printer(object):
         self.resizeGL(width, height)        # Call to the resize function.
 
     def resizeGL(self, width, height):
-        fov_angle = 30.0                    # Angle of eye view.
-        z_near = 0.1                        # Distance from the user from the screen.
-        z_far = 100                         # Distance in depth.
+        fov_angle = 60.0                    # Angle of eye view.
+        z_near = 10                        # Distance from the user from the screen.
+        z_far = 1000                         # Distance in depth.
 
         glMatrixMode(GL_PROJECTION)         # Enable Projection matrix configuration.
         glLoadIdentity()
@@ -68,7 +69,6 @@ class Printer(object):
             v_x = x - l_pos[0]
             v_y = y - l_pos[1]
 
-            glTranslate(0, 0, z)
             glRotate(1, v_y, 0, 0)
             glRotate(1, 0, v_x, 0)
 
@@ -82,9 +82,7 @@ class Printer(object):
         active = False
         pos = (0, 0)
         l_pos = pos
-        z = 0
-
-        is_cube = False
+        z = 10.0
 
         while True:
             if pos is not l_pos:
@@ -99,9 +97,9 @@ class Printer(object):
                     flag = True
                 elif event.type == MOUSEBUTTONDOWN:
                     if event.button is 4:
-                        z = 1
-                    elif event.button == 5:
-                        z = -1
+                        z += 1
+                    elif event.button is 5:
+                        z -= 1
                     pos = pygame.mouse.get_pos()
                     active = True
                 elif event.type == MOUSEMOTION:
@@ -126,40 +124,44 @@ class Printer(object):
                     flag = a.refill()
                 elif action is 3:
                     flag = a.sa_start()
-                    action = -1
+                else:
+                    action = 0
 
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-            self.img3d(a.rand_img)
+            self.img3d(a.rand_img, z)
+
+            #self.img2d()
             pygame.display.flip()
             pygame.time.wait(10)
 
-    def img3d(self, pixls):
+    def img3d(self, pixls, s):
         glEnable(GL_TEXTURE_3D)
         glHint(GL_POINT_SMOOTH_HINT, GL_NICEST)
         glEnable(GL_POINT_SMOOTH)
         glPointSize(3)
 
+        x_dif, y_dif, z_dif = [self.w / 2.0, self.h / 2.0, self.d / 2.0]
+        size = s * 0.01
+
         glBegin(GL_POINTS)
         for p in pixls:
             glColor3f(p.val, p.val, 1)
-            glVertex3f(p.x, p.y, p.z)
+            glVertex3f(size * (p.x - x_dif), size * (p.y - y_dif), size * (p.z - z_dif))
         glEnd()
 
     def img2d(self):
         glEnable(GL_TEXTURE_2D)
         glHint(GL_POINT_SMOOTH_HINT, GL_NICEST)
         glEnable(GL_POINT_SMOOTH)
-        glPointSize(10)
+        glPointSize(1)
 
-        lim = min(self.w, self.h)
         data = self.data
-        c = 0
 
         glBegin(GL_POINTS)
-        for i in range(lim):
-            for j in range(lim):
-                glColor3f(data[c], data[c], 1)
-                glVertex2i(j, i)
+        for i in range(self.h):
+            for j in range(self.w):
+                glColor3f(data[(self.w * i) + j], data[(self.w * i) + j], 1)
+                glVertex2f(0.3 * (i - self.w / 2.0), 0.3 * (j - self.h / 2.0))
         glEnd()
 
     def histo(self, pix):

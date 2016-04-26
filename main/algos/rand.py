@@ -39,7 +39,6 @@ class MyRandom(object):
                         self.zeros.append(p)
                     else:
                         self.ones.append(p)
-
         self.image = img3
         return self.image
 
@@ -59,16 +58,15 @@ class MyRandom(object):
 
     def circled_grow(self, pix, radius):
         self.i_change.append(pix)
-        #pix.val = 1
 
         width = self.w
         height = self.h
-        depth = min(width, height)
+        depth = self.d
         rmin = 1
         rmax = min(width, height, radius)
         rs = width
         ss = width * height
-        d, r, c = (pix.x, pix.y, pix.z)
+        d, r, c = (pix.z, pix.y, pix.x)
 
         cradio = min(
             rmax,
@@ -76,9 +74,8 @@ class MyRandom(object):
             r, self.h - r - 1,
             d, depth - d - 1
         )
-        #cradio = radius
 
-        for radio in range(rmin, cradio + 1):
+        for radio in range(rmin, cradio):
             radio2 = radio ** 2
             for d2 in range(-radio, radio + 1):
                 for r2 in range(-radio, radio + 1):
@@ -86,7 +83,6 @@ class MyRandom(object):
                         x = r2 ** 2 + c2 ** 2 + d2 ** 2
                         if min(x, radio2) == x:
                             other = pix.pos + (d2 * ss) + (r2 * rs) + c2
-                            #self.image[other].val = 1
                             self.i_change.append(
                                 self.image[other]
                             )
@@ -97,7 +93,6 @@ class MyRandom(object):
             self.zeros.remove(pix)
             self.ones.append(pix)
             self.i_change.append(pix)
-            #pix.val = 1
             cont -= 1
 
     def simple_swap(self):              # Swap random pixels with different phase
@@ -115,7 +110,6 @@ class MyRandom(object):
         for i in vec:
             i.change()
 
-    # Should it check EVERY pixel????
     def checkN(self):
         pix_change = []
         for i in self.image:
@@ -134,19 +128,11 @@ class MyRandom(object):
                 pix_change.append(i)
         return pix_change
 
-    def go(self):
-        self.best = self.image
-
     def reset(self):
         self.image = self.best
         self.resets += 1
         for i in self.image:
             i.reset()
-
-    def restart(self):
-        self.starts += 1
-        self.resets = 0
-        self.image = self.start_random()
 
 
 class Pix(object):
@@ -156,7 +142,7 @@ class Pix(object):
         self.z = z
         self.pos = z*size*size + y*size + x
         self.val = 0
-        #self.val = random.randint(0, 1)         # May find something better
+        # self.val = random.randint(0, 1)         # May find something better
         self.flag = 0                           # Diff Neighbours
         self.changes = 0
 

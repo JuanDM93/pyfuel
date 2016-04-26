@@ -21,8 +21,8 @@ class Algo(Process):
         self.one_res = (0, 0)
         self.ene = 0
         self.rand_img = self.rand.new()
-        #self.rand_img, self.ene = self.pos_init()
-        #self.pre_start()
+        # self.rand_img, self.ene = self.pos_init()
+        # self.pre_start()
 
     def change(self):
         if len(self.rand.i_change) > 0:
@@ -47,17 +47,14 @@ class Algo(Process):
         return False
 
     def sa_start(self):                                # Normal swapping (RANDOM)
-        rand_img = self.rand_img
-        rand_ref = self.cont.corr(rand_img, 0)
-        ene = self.cont.errors(self.ref, rand_ref)
-        while ene > self.tol * 100:                     # Initial tolerance
-            n_img, pix = self.rand.simple_swap()
-            rand_ref = self.cont.corr(n_img, pix)
-            n_ene = self.cont.errors(self.ref, rand_ref)
+        while self.ene > self.tol * 100:                     # Initial tolerance
+            self.rand.simple_swap()
+            self.ene = self.cont.corr(self.rand_img)
+            self.ene = self.cont.errors(self.ref, self.ene)
             if n_ene < ene:
                 rand_img = n_img
                 ene = n_ene
-        return rand_img, ene
+        return False
 
     def start(self, info=None):                                    # DPN swapping with threshold
         img = self.rand_img
