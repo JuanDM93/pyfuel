@@ -96,7 +96,6 @@ class Printer(object):
                 if event.type == QUIT:
                     quit()
                 elif event.type == KEYUP:
-                    action += 1
                     flag = True
                 elif event.type == MOUSEBUTTONDOWN:
                     if event.button is 4:
@@ -123,18 +122,20 @@ class Printer(object):
             glRotate(1, 1, 1, 1)
             """
             if a.change() and flag:
-                if action is 1:
+                if action is 0:
                     start = time.clock()
                     print 'start: ' + str(start)
                     flag = a.pre_start()
+                    action += 1
                     print 'Circled: ' + str(time.clock() - start)
-                elif action is 2:
+                elif action is 1:
                     start = time.clock()
                     print 'start: ' + str(start)
                     flag = a.refill()
                     print'Filled: ' + str(time.clock() - start)
-                elif action is 3:
-                    flag = a.sa_start()
+                elif action is 2:
+                    pass
+                    # flag = a.sa_start()
                 else:
                     action = 0
 
