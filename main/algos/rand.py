@@ -35,11 +35,14 @@ class MyRandom(object):
                 for k in range(self.w):
                     p = Pix(k, j, i, self.d)
                     self.image.append(p)
-                    if p.val is 0:
-                        self.zeros.append(p)
-                    else:
-                        self.ones.append(p)
         return self.image
+
+    def count_zeros(self):
+        for p in self.image:
+            if p.val is 0:
+                self.zeros.append(p)
+            else:
+                self.ones.append(p)
 
     def circled(self, c_ref):
         cont0 = 0
@@ -86,9 +89,8 @@ class MyRandom(object):
                         x = r2 ** 2 + c2 ** 2 + d2 ** 2
                         if min(x, radio2) == x:
                             other = pix.pos + (d2 * ss) + (r2 * rs) + c2
-                            self.i_change.append(
-                                self.image[other]
-                            )
+                            change = self.image[other]
+                            self.i_change.append(change)
 
     def get_change(self):
         if len(self.i_change) < 1 and len(self.j_change) < 1:

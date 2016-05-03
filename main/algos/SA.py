@@ -18,6 +18,7 @@ class Algo(Process):
         self.rand = MyRandom(w, h, d)
 
         self.ref = self.cont.corr(img)
+        self.start_ref = {}
         self.one_ref = self.cont.get_one(img)
         self.one_res = (0, 0)
         self.ene = 0
@@ -44,10 +45,16 @@ class Algo(Process):
         return False
 
     def refill(self):
+        self.rand.count_zeros()
         self.one_res = self.cont.set_one(self.rand_img)
         lmax = self.one_ref[0] * len(self.rand_img)
         lmin = self.one_res[0] * len(self.rand_img)
         self.rand.f_swap(int(lmax - lmin))
+        return False
+
+    def after_fill(self):
+        self.one_res = self.cont.set_one(self.rand_img)
+        self.start_ref = self.cont.corr(self.cont.getImg(self.rand_img))
         return False
 
     def sa_start(self):                                # Normal swapping (RANDOM)

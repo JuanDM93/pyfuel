@@ -122,19 +122,20 @@ class Printer(object):
             glRotate(1, 1, 1, 1)
             """
             if a.change() and flag:
-                if action is 0:
-                    start = time.clock()
+                start = time.clock()
+                action += 1
+                if action is 1:
                     print 'start: ' + str(start)
                     flag = a.pre_start()
-                    action += 1
                     print 'Circled: ' + str(time.clock() - start)
-                elif action is 1:
-                    start = time.clock()
+                elif action is 2:
                     print 'start: ' + str(start)
                     flag = a.refill()
-                    print'Filled: ' + str(time.clock() - start)
-                elif action is 2:
-                    pass
+                    print 'Filled: ' + str(time.clock() - start)
+                elif action is 3:
+                    print 'start: ' + str(start)
+                    flag = a.after_fill()
+                    print 'Prestarted!!!: ' + str(time.clock() - start)
                     # flag = a.sa_start()
                 else:
                     action = 0
