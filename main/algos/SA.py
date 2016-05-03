@@ -2,6 +2,8 @@ from jaimes_alg import Contador
 from rand import MyRandom
 from process import Process
 
+import time
+
 
 class Algo(Process):
     def __init__(self, img, w, h, d):        # img[]
@@ -27,7 +29,7 @@ class Algo(Process):
         changer, val = self.rand.get_change()
         if len(changer) > 0:
             if len(changer) is 1:
-                print 'last'
+                print 'last: ' + str(time.clock())
                 pix = changer.pop()
                 pix.val = val
             for i in range(int(len(changer) / 2.0)):
