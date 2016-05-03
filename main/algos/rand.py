@@ -1,4 +1,3 @@
-#               Randomness
 import random
 
 
@@ -44,7 +43,7 @@ class MyRandom(object):
             else:
                 self.ones.append(p)
 
-    def circled(self, c_ref):
+    def circled(self, c_ref, n_ref):
         cont0 = 0
         cont1 = 0
 
@@ -54,7 +53,7 @@ class MyRandom(object):
                 lim += 1
 
         for r in range(lim - 1, -1, -1):
-            c = c_ref['PS1'][r] * c_ref['total'][r]
+            c = c_ref['PS1'][r] * n_ref['total'][r]
             if c > 0:
                 for p in range(int(c - cont0)):
                     pix = random.choice(self.image)
@@ -101,12 +100,23 @@ class MyRandom(object):
             return self.j_change, 0
 
     def f_swap(self, cont):
-        while cont > 0:
-            pix = random.choice(self.zeros)
-            self.zeros.remove(pix)
-            self.ones.append(pix)
-            self.i_change.append(pix)
-            cont -= 1
+        args = [-1, self.ones, self.zeros, self.j_change]
+        args2 = [1, self.zeros, self.ones, self.i_change]
+        if cont < 0:
+            cont *= -1
+            while cont > 0:
+                pix = random.choice(self.ones)
+                self.ones.remove(pix)
+                self.zeros.append(pix)
+                self.j_change.append(pix)
+                cont -= 1
+        else:
+            while cont > 0:
+                pix = random.choice(self.zeros)
+                self.zeros.remove(pix)
+                self.ones.append(pix)
+                self.i_change.append(pix)
+                cont -= 1
 
     def simple_swap(self):              # Swap random pixels with different phase
         a = random.choice(self.zeros)
@@ -168,4 +178,3 @@ class Pix(object):
     def reset(self):
         self.changes = 0
         self.flag = 0
-

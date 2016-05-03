@@ -121,7 +121,8 @@ class Printer(object):
 
             glRotate(1, 1, 1, 1)
             """
-            if a.change() and flag:
+            draw = a.change()
+            if draw and flag:
                 start = time.clock()
                 action += 1
                 if action is 1:

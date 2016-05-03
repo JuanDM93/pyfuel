@@ -29,19 +29,22 @@ class Algo(Process):
     def change(self):
         changer, val = self.rand.get_change()
         if len(changer) > 0:
-            if len(changer) is 1:
-                print 'last: ' + str(time.clock())
+            # if len(changer) is 1:
+            #     print 'last: ' + str(time.clock())
+            #     pix = changer.pop()
+            #     pix.val = val
+            # for i in range(int(len(changer) / 2.0)):
+            for i in range(len(changer)):
                 pix = changer.pop()
                 pix.val = val
-            for i in range(int(len(changer) / 2.0)):
-                pix = changer.pop()
-                pix.val = val
+            print 'last: ' + str(time.clock())
             return False
         else:
             return True
 
     def pre_start(self):
-        self.rand.circled(self.cont.circle_ref)
+        self.start_ref = self.cont.corr(self.rand_img, 0)
+        self.rand.circled(self.cont.circle_ref, self.cont.circle_result)
         return False
 
     def refill(self):
