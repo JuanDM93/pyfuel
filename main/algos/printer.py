@@ -96,7 +96,7 @@ class Printer(object):
                 if event.type == QUIT:
                     quit()
                 elif event.type == KEYUP:
-                    flag = True
+                    flag = not flag
                 elif event.type == MOUSEBUTTONDOWN:
                     if event.button is 4:
                         if z < 10:

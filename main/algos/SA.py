@@ -54,7 +54,7 @@ class Algo(Process):
 
     def after_fill(self):
         self.one_res = self.cont.set_one(self.rand_img)
-        self.start_ref = self.cont.corr(self.cont.getImg(self.rand_img))
+        self.start_ref = self.cont.corr(self.rand_img, 0)
         return False
 
     def sa_start(self):                                # Normal swapping (RANDOM)
@@ -63,7 +63,7 @@ class Algo(Process):
         thrs = 0.1
         while self.ene > self.tol * 100:                     # Initial tolerance
             self.rand.simple_swap()
-            n_ref = self.cont.corr(self.cont.getImg(self.rand_img))
+            n_ref = self.cont.corr(self.rand_img)
             self.ene = self.cont.errors(self.ref, n_ref)
             if self.ene < thrs:
                 thrs = self.ene
