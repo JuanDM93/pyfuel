@@ -1,8 +1,10 @@
 import csv
+
+
 #           Basic IO
 class FileIO(object):
-    def __init__(self):
-        self.head = 5
+    # def __init__(self):
+        # self.head = 5
 
     def readAll(self, file_name):
         data = []
@@ -15,7 +17,6 @@ class FileIO(object):
                 for i in range(w):
                     data.append(int(row[i]))
         return data, w, h
-
 
     # def read_Head(self, txt, start, end):
     #     data = []

@@ -10,5 +10,5 @@ class First(Process):
         printer = Printer(data, w, h)
 
 pro = First(1)
-pro.start('infile')
-# pro.start('infile2.csv')
+# pro.start('infile')
+pro.start('infile2.csv')

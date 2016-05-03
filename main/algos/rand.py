@@ -16,36 +16,40 @@ def neigh(x, lim):
 
 class MyRandom(object):
 
-    def __init__(self, w, h):
+    def __init__(self, w, h, d):
         self.w = w
         self.h = h
-        self.d = max(w, h)
+        self.d = d
         self.resets = 0
         self.starts = 1
 
         self.image = []
         self.i_change = []
+        self.j_change = []
 
         self.ones, self.zeros = ([], [])
 
     def new(self):
-        img3 = []
         for i in range(self.d):
             for j in range(self.h):
                 for k in range(self.w):
-                    p = Pix(k, j, i, self.w)
-                    img3.append(p)
+                    p = Pix(k, j, i, self.d)
+                    self.image.append(p)
                     if p.val is 0:
                         self.zeros.append(p)
                     else:
                         self.ones.append(p)
-        self.image = img3
         return self.image
 
     def circled(self, c_ref):
         cont0 = 0
         cont1 = 0
-        lim = len(c_ref['total'])
+
+        lim = 0
+        for i in c_ref['total']:
+            if i is not 0:
+                lim += 1
+
         for r in range(lim - 1, -1, -1):
             c = c_ref['PS1'][r] * c_ref['total'][r]
             if c > 0:
@@ -54,7 +58,6 @@ class MyRandom(object):
                     self.circled_grow(pix, r)
                     cont1 += 1
                 cont0 = cont1
-        return self.image
 
     def circled_grow(self, pix, radius):
         self.i_change.append(pix)
@@ -87,7 +90,15 @@ class MyRandom(object):
                                 self.image[other]
                             )
 
-    def swap(self, cont):
+    def get_change(self):
+        if len(self.i_change) < 1 and len(self.j_change) < 1:
+            return [], -1
+        elif len(self.i_change) > len(self.j_change):
+            return self.i_change, 1
+        else:
+            return self.j_change, 0
+
+    def f_swap(self, cont):
         while cont > 0:
             pix = random.choice(self.zeros)
             self.zeros.remove(pix)
@@ -98,10 +109,12 @@ class MyRandom(object):
     def simple_swap(self):              # Swap random pixels with different phase
         a = random.choice(self.zeros)
         self.zeros.remove(a)
-        a.val = 1
+        self.i_change.append(a)
+        # a.val = 1
         b = random.choice(self.ones)
         self.ones.remove(b)
-        b.val = 0
+        self.j_change.append(b)
+        # b.val = 0
         self.ones.append(a)
         self.zeros.append(b)
 

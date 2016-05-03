@@ -6,12 +6,13 @@ from OpenGL.GLU import *
 
 from main.algos.SA import *
 
+import time
 
 class Printer(object):
     def __init__(self, data, w, h):
         self.w = w
         self.h = h
-        self.d = max(w, h)
+        self.d = min(w, h)
         self.data = data
 
         self.main()
@@ -21,6 +22,7 @@ class Printer(object):
         height = 720.0
 
         pygame.init()       # We initialise the pygame module.
+        pygame.display.set_caption('Fuel3D')
 
         pygame.display.set_mode(
             (int(width), int(height)),          # We set the window width and height
@@ -37,11 +39,13 @@ class Printer(object):
 
         glShadeModel(GL_SMOOTH)             # Define lines as polygon instead of full polygon: GL_SMOOTH, GL_FLAT
 
+        glRotate(30, 1, 1, 0)
+
         self.resizeGL(width, height)        # Call to the resize function.
 
     def resizeGL(self, width, height):
         fov_angle = 90.0                    # Angle of eye view.
-        z_near = 0.1                        # Distance from the user from the screen.
+        z_near = 1                          # Distance from the user from the screen.
         z_far = 100                         # Distance in depth.
 
         glMatrixMode(GL_PROJECTION)         # Enable Projection matrix configuration.
@@ -65,23 +69,23 @@ class Printer(object):
     def djent(self, flag, pos, l_pos, z):
         if flag is True:
             x, y = pos
-            ### Get it better
+            # Get it better
             v_x = x - l_pos[0]
             v_y = y - l_pos[1]
 
-            glRotatef(z * 0.05, v_y, v_x, 0)
+            glRotatef(z * 0.3, v_y, v_x, 0)
 
     def mainloop(self):
-        #Algo
-        a = Algo(self.data, self.w, self.h)
+        # Algo
+        a = Algo(self.data, self.w, self.h, self.d)
         action = 0
-        flag = True
+        flag = False
 
-        #Djent
+        # Djent
         active = False
         pos = (0, 0)
         l_pos = pos
-        z = 10.0
+        z = 5.0
 
         while True:
             if pos is not l_pos:
@@ -96,7 +100,7 @@ class Printer(object):
                     flag = True
                 elif event.type == MOUSEBUTTONDOWN:
                     if event.button is 4:
-                        if z < 100:
+                        if z < 10:
                             z += 1
                     elif event.button is 5:
                         if z > 1:
@@ -120,9 +124,15 @@ class Printer(object):
             """
             if a.change() and flag:
                 if action is 1:
+                    start = time.clock()
+                    print 'start: ' + str(start)
                     flag = a.pre_start()
+                    print 'Circled: ' + str(time.clock() - start)
                 elif action is 2:
+                    start = time.clock()
+                    print 'start: ' + str(start)
                     flag = a.refill()
+                    print'Filled: ' + str(time.clock() - start)
                 elif action is 3:
                     flag = a.sa_start()
                 else:
@@ -133,15 +143,15 @@ class Printer(object):
 
             # self.img2d()
             pygame.display.flip()
-            pygame.time.wait(30)
+            # pygame.time.wait(30)
 
     def img3d(self, pixls, s):
         glEnable(GL_TEXTURE_3D)
         glHint(GL_POINT_SMOOTH_HINT, GL_NICEST)
         glEnable(GL_POINT_SMOOTH)
-        glPointSize(s * 0.1)
+        glPointSize(s * 0.5)
 
-        size = s * 0.01
+        size = s * 0.05
         x_dif, y_dif, z_dif = [
             self.w / 2.0,
             self.h / 2.0,
@@ -169,8 +179,15 @@ class Printer(object):
         glBegin(GL_POINTS)
         for i in range(self.h):
             for j in range(self.w):
-                glColor3f(data[(self.w * i) + j], data[(self.w * i) + j], 1)
-                glVertex2f(0.3 * (i - self.w / 2.0), 0.3 * (j - self.h / 2.0))
+                glColor3f(
+                    data[(self.w * i) + j],
+                    data[(self.w * i) + j],
+                    1
+                )
+                glVertex2f(
+                    0.3 * (i - self.w / 2.0),
+                    0.3 * (j - self.h / 2.0)
+                )
         glEnd()
 
     def histo(self, pix):

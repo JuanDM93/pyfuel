@@ -5,11 +5,12 @@ def opera(t, x, y):
         return x ^ y
 
 
-def norm(pdf, total):
+def norm(pdf):
     for i in pdf:
         if i is not 'total':
             for j in range(len(pdf[i])):
-                pdf[i][j] /= total * 1.000
+                if pdf['total'][j] is not 0:
+                    pdf[i][j] /= pdf['total'][j] * 1.000
     return pdf
 
 
@@ -21,30 +22,26 @@ def setCont(limit, names):
 
 
 class Contador(object):
-
-    def __init__(self, width, height):
+    def __init__(self, width, height, depth):
         self.w = width
         self.h = height
-        self.d = max(width, height)
+        self.d = depth
 
         # Info for faster revert ???
         self.pix = 0
-
-        self.ones = 0
-        self.zeros = 0
 
         line_names = ['f2s1', 'flp1', 'f2s0', 'flp0', 'total']
         self.line_ref = setCont(max(width, height), line_names)
 
         # Max Radius = 20
-        circle_names = ['PS1', 'PS0', 'total']
+        circle_names = ['PS1', 'total']
         self.circle_ref = setCont(max(width, height, 20), circle_names)
 
         self.line_result, self.circle_result = self.set_cont()
 
     def set_cont(self):
         l_name = ['f2s1', 'flp1', 'f2s0', 'flp0', 'total']
-        c_name = ['PS1', 'PS0', 'total']
+        c_name = ['PS1', 'total']
 
         line = setCont(max(self.w, self.h), l_name)
         circle = setCont(max(self.w, self.h, 20), c_name)
@@ -81,7 +78,7 @@ class Contador(object):
 
     def corr(self, data, pix=1):
         self.pix = pix
-        if pix == 1:
+        if pix is 1:
             l_res = self.lines(data, self.line_ref, pix)
             c_res = self.circles(data, self.circle_ref, pix)
         else:
@@ -89,7 +86,9 @@ class Contador(object):
             self.line_result, self.circle_result = self.set_cont()
             l_res = self.lines(data, self.line_result)
             c_res = self.sphere(data, self.circle_result)
-        return norm(l_res, len(data)), norm(c_res, len(data))
+        l_res = norm(l_res)
+        c_res = norm(c_res)
+        return l_res, c_res
 
     def circles(self, pixels, cont, first=0):
 
