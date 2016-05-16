@@ -31,13 +31,18 @@ class MyRandom(object):
         self.zeros = []
 
     def new(self):
+        printed = []
         for i in range(self.d):
             for j in range(self.h):
                 for k in range(self.w):
                     p = (i, j, k)
                     self.image.append(0)
                     self.cords.append(p)
-        return self.image
+                    if i < 1 or i > self.d - 2\
+                            or j < 1 or j > self.h - 2\
+                            or k < 1 or k > self.w - 2:
+                        printed.append(p)
+        return self.image, printed
 
     def get_change(self):
         if self.i_change < 1 and self.j_change < 1:

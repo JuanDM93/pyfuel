@@ -1,14 +1,14 @@
 from jaimes_alg import Contador
 from rand import MyRandom
+from process import Process
 import time
-# from process import Process
 
 
-class Algo(object):
-    # def __init__(
-    #         self, threadID, name, counter, img, w, h, d):
-    #     Process.__init__(self, threadID, name, counter)
-    def __init__(self, img, w, h, d):
+class Algo(Process):
+    def __init__(
+            self, threadID, name, img, w, h, d):
+        Process.__init__(self, threadID, name)
+    # def __init__(self, img, w, h, d):
         self.w, self.h, self.d = w, h, d
 
         self.tol = 0.0001
@@ -22,7 +22,7 @@ class Algo(object):
         self.rand = MyRandom(w, h, d)
 
         start = time.clock()
-        self.rand_img = self.rand.new()     # 2-3 secs
+        self.rand_img, self.printed = self.rand.new()     # 2-3 secs
         print '  Newed %s' % (time.clock() - start)
 
         self.ref = self.cont.corr(img, 0)

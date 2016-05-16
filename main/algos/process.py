@@ -27,10 +27,7 @@ class Process(threading.Thread):
         self.runs += 1
 
         print "Starting " + self.name + ' ' + str(time.clock())
-        try:
-            self.main()
-        except Exception:
-            print "Error " + self.name
+        self.main()
         print "Exiting " + self.name + ' ' + str(time.clock())
 
     def main(self):

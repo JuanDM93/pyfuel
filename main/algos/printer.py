@@ -5,14 +5,8 @@ from pygame.locals import *
 from OpenGL.GL import *
 from OpenGL.GLU import *
 
-import threading
-# from process import Process
-
 
 class Printer(object):
-    # def __init__(
-    #         self, threadID, name, counter, data, w, h, d, algo):
-    #     Process.__init__(self, threadID, name, counter)
     def __init__(self, data, w, h, d, algo):
         self.w = w
         self.h = h
@@ -26,7 +20,9 @@ class Printer(object):
         )
         self.size = 0.5
 
-        self.rand_img = [0] * (self.w * self.h * self.d)
+        self.rand_img = algo.rand_img
+        self.printed = algo.printed
+        self.algo = algo
 
         s_width = 1024.0
         s_height = 720.0
@@ -43,10 +39,6 @@ class Printer(object):
         """
         TESTIN
         """
-        self.algo = algo
-        # f = threading.Thread(target=self.main())
-        # f.setDaemon(True)
-        # f.start()
         self.main()
 
     def main(self):
@@ -55,13 +47,9 @@ class Printer(object):
         l_pos = pos
         active = False
 
-        fin = False
-
         # mainloop
         while True:
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-            if fin:
-                quit()
             for event in pygame.event.get():
                 if event.type == QUIT:
                     quit()
@@ -81,10 +69,11 @@ class Printer(object):
                     pos = pygame.mouse.get_pos()
                 elif event.type == KEYUP:           # Start algorithm process button
                     # Should get more functions...
-                    print 'Algo start: %s' % time.clock()
-                    fin = self.algo.main()
+                    if not self.algo.isAlive():
+                        # self.rand_img = self.algo.rand_img
+                        print 'Algo start: %s' % time.clock()
+                        self.algo.start()
 
-            self.rand_img = self.algo.rand_img
             self.resizeGL(self.w, self.h)
             l_pos = self.djent(active, pos, l_pos)                # mouse motion
 
@@ -153,17 +142,26 @@ class Printer(object):
         ss = self.w * self.h
 
         glBegin(GL_POINTS)
-        for i in range(0, self.d):
-            for j in range(0, self.h):
-                for k in range(0, self.w):
-                    if i < 1 or i > self.d - 2 or j < 1 or j > self.h - 2 or k < 1 or k > self.w - 2:
-                        pos = i * ss + j * rs + k
-                        glColor3f(0, self.rand_img[pos], 0)
-                        glVertex3f(
-                            z * (i - self.dif[0]),
-                            z * (j - self.dif[1]),
-                            z * (k - self.dif[2])
-                        )
+        for p in self.printed:
+            d, r, c = p
+            pos = d * ss + r * rs + c
+            glColor3f(0, self.rand_img[pos], 0)
+            glVertex3f(
+                z * (d - self.dif[0]),
+                z * (r - self.dif[1]),
+                z * (c - self.dif[2]),
+            )
+        # for i in range(0, self.d):
+        #     for j in range(0, self.h):
+        #         for k in range(0, self.w):
+        #             if i < 1 or i > self.d - 2 or j < 1 or j > self.h - 2 or k < 1 or k > self.w - 2:
+        #                 pos = i * ss + j * rs + k
+        #                 glColor3f(0, self.rand_img[pos], 0)
+        #                 glVertex3f(
+        #                     z * (i - self.dif[0]),
+        #                     z * (j - self.dif[1]),
+        #                     z * (k - self.dif[2])
+        #                 )
         glEnd()
 
     def img2d(self):
