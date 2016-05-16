@@ -1,5 +1,5 @@
-import random
-from io_func import *
+import threading
+import time
 
 
 def contador(args):        # Argument counter
@@ -12,24 +12,32 @@ def contador(args):        # Argument counter
         return value
 
 
-class Process(object):
-
-    def __init__(self, opt):
-        self.opt = opt
+class Process(threading.Thread):
+    def __init__(self, threadID, name):
+        threading.Thread.__init__(self)
+        self.threadID = threadID
+        self.name = name
 
         self.runs = 0
-        self.id = random.randint(0, 10)
-        self.io = FileIO()
 
         self.result = None
         self.info = None
 
-    def start(self, info):
-        self.result = info
+    def run(self):
         self.runs += 1
+
+        print "Starting " + self.name + ' ' + str(time.clock())
+        try:
+            self.main()
+        except Exception:
+            print "Error " + self.name
+        print "Exiting " + self.name + ' ' + str(time.clock())
+
+    def main(self):
+        pass
 
     def getState(self):
         print str(self.runs) + ' runs dude!'
 
-    def close(self):
-        self.io.writeOUT(self.result, 'outfile_%s' % self.id)
+    # def close(self):
+    #     self.io.writeOUT(self.result, 'outfile_%s' % self.id)

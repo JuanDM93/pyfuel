@@ -1,14 +1,28 @@
-from algos.SA import *
-from main.algos.printer import Printer
+from algos.io_func import FileIO
+from algos.printer import Printer
+from algos.SA import Algo
+
+import time
+import cProfile
 
 
-class First(Process):
-    def start(self, source):
-        io = self.io
-        data, w, h = io.readAll(source)
+def main():
+    io = FileIO()
+    data, w, h = io.readAll('infile2.csv')
+    # data, w, h = io.readAll('infile')
+    d = min(w, h)
 
-        printer = Printer(data, w, h)
+    start = time.clock()
+    # Algo
+    algo = Algo(
+        # 2, 'algo', 0,
+        data, w, h, d
+    )
+    print 'Referenced ', time.clock() - start
+    printer = Printer(
+        # 1, 'draw', 0,
+        data, w, h, d, algo
+    )
 
-pro = First(1)
-# pro.start('infile')
-pro.start('infile2.csv')
+cProfile.run('main()')
+# main()

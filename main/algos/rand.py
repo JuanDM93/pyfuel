@@ -23,47 +23,44 @@ class MyRandom(object):
         self.starts = 1
 
         self.image = []
-        self.i_change = []
-        self.j_change = []
+        self.cords = []
+        self.i_change = 0
+        self.j_change = 0
 
-        self.ones, self.zeros = ([], [])
+        self.ones = []
+        self.zeros = []
 
     def new(self):
         for i in range(self.d):
             for j in range(self.h):
                 for k in range(self.w):
-                    p = Pix(k, j, i, self.d)
-                    self.image.append(p)
+                    p = (i, j, k)
+                    self.image.append(0)
+                    self.cords.append(p)
         return self.image
 
-    def count_zeros(self):
-        for p in self.image:
-            if p.val is 0:
-                self.zeros.append(p)
-            else:
-                self.ones.append(p)
+    def get_change(self):
+        if self.i_change < 1 and self.j_change < 1:
+            return 0, -1, []
+        elif self.i_change > self.j_change:
+            return self.i_change, 1, self.ones
+        else:
+            return self.j_change, 0, self.zeros
 
     def circled(self, c_ref, n_ref):
         cont0 = 0
         cont1 = 0
+        lim = len(c_ref['PS1']) - c_ref['PS1'].count(0)
 
-        lim = 0
-        for i in c_ref['total']:
-            if i is not 0:
-                lim += 1
-
-        for r in range(lim - 1, -1, -1):
-            c = c_ref['PS1'][r] * n_ref['total'][r]
-            if c > 0:
-                for p in range(int(c - cont0)):
-                    pix = random.choice(self.image)
-                    self.circled_grow(pix, r)
-                    cont1 += 1
-                cont0 = cont1
+        for r in range(lim - 1, 0, -1):
+            c = c_ref['PS1'][r] * n_ref[r]
+            for p in range(int(c - cont0)):
+                pix = random.choice(self.cords)
+                self.circled_grow(pix, r)
+                cont1 += 1
+            cont0 = cont1 * 4                   # Calculate better
 
     def circled_grow(self, pix, radius):
-        self.i_change.append(pix)
-
         width = self.w
         height = self.h
         depth = self.d
@@ -71,12 +68,14 @@ class MyRandom(object):
         rmax = min(width, height, radius)
         rs = width
         ss = width * height
-        d, r, c = (pix.z, pix.y, pix.x)
+        d, r, c = pix
+        pos = d * ss + r * rs + c
+        self.image[pos] = 1
 
         cradio = min(
             rmax,
-            c, self.w - c - 1,
-            r, self.h - r - 1,
+            c, width - c - 1,
+            r, height - r - 1,
             d, depth - d - 1
         )
 
@@ -86,47 +85,38 @@ class MyRandom(object):
                 for r2 in range(-radio, radio + 1):
                     for c2 in range(-radio, radio + 1):
                         x = r2 ** 2 + c2 ** 2 + d2 ** 2
-                        if min(x, radio2) == x:
-                            other = pix.pos + (d2 * ss) + (r2 * rs) + c2
-                            change = self.image[other]
-                            self.i_change.append(change)
-
-    def get_change(self):
-        if len(self.i_change) < 1 and len(self.j_change) < 1:
-            return [], -1
-        elif len(self.i_change) > len(self.j_change):
-            return self.i_change, 1
-        else:
-            return self.j_change, 0
+                        if x < radio2:
+                            offset = (d2 * ss) + (r2 * rs) + c2
+                            other = pos + offset
+                            self.image[other] = 1
 
     def f_swap(self, cont):
-        args = [-1, self.ones, self.zeros, self.j_change]
-        args2 = [1, self.zeros, self.ones, self.i_change]
+        args = 1
+        args2 = 0
+
         if cont < 0:
+            args = args2
             cont *= -1
-            while cont > 0:
-                pix = random.choice(self.ones)
-                self.ones.remove(pix)
-                self.zeros.append(pix)
-                self.j_change.append(pix)
-                cont -= 1
-        else:
-            while cont > 0:
-                pix = random.choice(self.zeros)
-                self.zeros.remove(pix)
-                self.ones.append(pix)
-                self.i_change.append(pix)
+
+        rs = self.w
+        ss = self.w * self.h
+
+        while cont > 0:
+            pix = random.choice(self.cords)
+            d, r, c = pix
+            pos = d * ss + r * rs + c
+            val = self.image[pos]
+            self.image[pos] = args
+            if val is not args:
                 cont -= 1
 
     def simple_swap(self):              # Swap random pixels with different phase
         a = random.choice(self.zeros)
         self.zeros.remove(a)
         self.i_change.append(a)
-        # a.val = 1
         b = random.choice(self.ones)
         self.ones.remove(b)
         self.j_change.append(b)
-        # b.val = 0
         self.ones.append(a)
         self.zeros.append(b)
 
@@ -158,23 +148,3 @@ class MyRandom(object):
         self.resets += 1
         for i in self.image:
             i.reset()
-
-
-class Pix(object):
-    def __init__(self, x, y, z, size):
-        self.x = x
-        self.y = y
-        self.z = z
-        self.pos = z*size*size + y*size + x
-        self.val = 0
-        # self.val = random.randint(0, 1)         # May find something better
-        self.flag = 0                           # Diff Neighbours
-        self.changes = 0
-
-    def change(self):
-        self.val = ~self.val + 2
-        self.changes += 1
-
-    def reset(self):
-        self.changes = 0
-        self.flag = 0

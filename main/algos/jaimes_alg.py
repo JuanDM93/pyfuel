@@ -1,8 +1,4 @@
-def opera(t, x, y):
-    if t:
-        return y
-    else:
-        return x ^ y
+import time
 
 
 def norm(pdf):
@@ -28,15 +24,11 @@ class Contador(object):
         self.d = depth
 
         # Info for faster revert ???
-        self.pix = 0
+        # self.pix = 0
 
-        line_names = ['f2s1', 'flp1', 'f2s0', 'flp0', 'total']
-        self.line_ref = setCont(max(width, height), line_names)
-
-        # Max Radius = 20
-        circle_names = ['PS1', 'total']
-        self.circle_ref = setCont(max(width, height, 20), circle_names)
-
+        self.cords_ones = []
+        self.cords_zeros = []
+        self.line_ref, self.circle_ref = self.set_cont()
         self.line_result, self.circle_result = self.set_cont()
 
     def set_cont(self):
@@ -44,10 +36,36 @@ class Contador(object):
         c_name = ['PS1', 'total']
 
         line = setCont(max(self.w, self.h), l_name)
-        circle = setCont(max(self.w, self.h, 20), c_name)
+        # Min or max??? --> cradio + 1?
+        circle = setCont(min(self.w, self.h, 21), c_name)
         return line, circle
 
+    def corr(self, data, pix=1):
+        if pix is 0:
+            start = time.clock()
+            l_res = self.lines(data, self.line_ref)             # 1 secs
+            print '    lines %s' % (time.clock() - start)
+            start = time.clock()
+            c_res = self.circles(data, self.circle_ref)         # 10 secs
+            print '    circles %s' % (time.clock() - start)
+        else:
+            start = time.clock()
+            self.line_result, self.circle_result = self.set_cont()
+            l_res = self.new_lines(data, self.line_result)      # 4 secs
+            print '    new lines %s' % (time.clock() - start)
+            start = time.clock()
+            c_res = self.sphere(data, self.circle_result)       # 20 mins
+            print '    spheres %s' % (time.clock() - start)
+        ones = data.count(1)
+        zeros = len(data) - ones
+        ones /= len(data) * 1.0
+        zeros /= len(data) * 1.0
+        l_res = norm(l_res)
+        c_res = norm(c_res)
+        return l_res, c_res, ones, zeros
+
     def errors(self, old, new):             # PDFs DIFF   --> To define...
+
         errors = 0
         for k in old.keys():
             if k is not 'total':
@@ -58,50 +76,73 @@ class Contador(object):
         errors /= len(old['total'])
         return errors
 
-    def get_one(self, data):
-        cont = 0
-        for i in data:
-            cont += i
-        return 1.0 * cont / len(data), (len(data) - cont) * 1.0 / len(data)
+    def lines(self, pixels, cont):
+        dim = 2
+        depth = 1
+        width = self.w
+        height = self.h
+        rs = width
+        ss = width * height
 
-    def set_one(self, data):
-        cont = 0
-        for p in data:
-            cont += p.val
-        return 1.0 * cont / len(data), (len(data) - cont) * 1.0 / len(data)
+        for d in range(depth):
+            for r in range(height):
+                for c in range(width):
+                    first_pix = pixels[
+                        d * ss + r * rs + c
+                        ]
 
-    def getImg(self, data):
-        image = []
-        for i in data:
-            image.append(i.val)
-        return image
+                    delta_offset = [1, rs, ss]
+                    limit = [width - c, height - r, depth - d]
 
-    def corr(self, data, pix=1):
-        self.pix = pix
-        if pix is 1:
-            l_res = self.lines(data, self.line_ref, pix)
-            c_res = self.circles(data, self.circle_ref, pix)
-        else:
-            data = self.getImg(data)
-            self.line_result, self.circle_result = self.set_cont()
-            l_res = self.lines(data, self.line_result)
-            c_res = self.sphere(data, self.circle_result)
-        l_res = norm(l_res)
-        c_res = norm(c_res)
-        return l_res, c_res
+                    #   t --> Opera 't'
+                    if first_pix == 1:  # Find '1'
+                        a = 'f2s1'
+                        b = 'flp1'
+                        #   Accountant
+                        for i in range(dim):
+                            flag = 1
+                            offset = d * ss + r * rs + c
+                            for ls in range(limit[i]):
+                                # All
+                                cont['total'][ls] += 1
+                                # F2
+                                cont[a][ls] += pixels[offset]
+                                # FL-check
+                                flag &= pixels[offset]
+                                # FL
+                                cont[b][ls] += flag
+                                offset += delta_offset[i]
 
-    def circles(self, pixels, cont, first=0):
+                    else:  # Find '0'
+                        a = 'f2s0'
+                        b = 'flp0'
+                        # Accountant
+                        first_pix = 1
+                        for i in range(dim):
+                            flag = 1
+                            offset = d * ss + r * rs + c
+                            for ls in range(limit[i]):
+                                # All
+                                cont['total'][ls] += 1
+                                # F2
+                                cont[a][ls] += first_pix ^ pixels[offset]
+                                # FL-check
+                                flag &= first_pix ^ pixels[offset]
+                                # FL
+                                cont[b][ls] += flag
+                                offset += delta_offset[i]
 
+        return cont
+
+    def circles(self, pixels, cont):
         width = self.w
         height = self.h
         rmin = 0                        # Should be 2
-        rmax = min(width, height, 20)
-
+        rmax = min(width / 2, height / 2, 20)
         maxH = height - rmin
         maxW = width - rmin
         for r in range(rmin, maxH):
             for c in range(rmin, maxW):
-
                 first_pix = pixels[r * width + c]
                 if first_pix == 0:
                     continue
@@ -118,7 +159,7 @@ class Contador(object):
                             if flag == 0:
                                 break
                             x = r2 ** 2 + c2 ** 2
-                            if min(x, radio2) == x:
+                            if x <= radio2:
                                 valor = pixels[
                                     (r + r2) * width + c + c2
                                 ]
@@ -126,18 +167,75 @@ class Contador(object):
                                 valor = 1
                             flag &= valor
                     cont['PS1'][radio] += flag
-                    cont['total'][radio] += 1
+        for radio in range(rmin, rmax + 1):
+            w2 = max(self.w - 2*radio, 0)
+            h2 = max(self.h - 2*radio, 0)
+            cont['total'][radio] = w2*h2
         return cont
 
-    def sphere(self, pixels, cont, first=0):
+    def new_lines(self, pixels, cont):
+        dim = 3
+        depth = self.d
 
         width = self.w
         height = self.h
-        depth = min(width, height)
-        rmin = 0
-        rmax = min(width, height, 20)
         rs = width
         ss = width * height
+
+        delta = [ss, rs, 1, ss, rs]
+        limit = [depth, height, width, depth, height]
+        w_vector = [0] * max(depth, height, width)
+
+        for d in range(dim):
+            for i in range(limit[d]):
+                for j in range(limit[d + 1]):
+                    main_offset = i * delta[d] + j * delta[d + 1]
+                    for k in range(limit[d + 2]):
+                        w_vector[k] = pixels[main_offset + k * delta[d + 2]]
+                    for k in range(limit[d + 2]):
+                        first_pix = w_vector[k]
+                        if first_pix == 1:  # Find '1'
+                            a = 'f2s1'
+                            b = 'flp1'
+                            flag = 1
+                            offset = k
+                            for ls in range(limit[d]-k):
+                                # All
+                                cont['total'][ls] += 1
+                                # F2
+                                cont[a][ls] += w_vector[offset]
+                                # FL-check
+                                flag &= w_vector[offset]
+                                # FL
+                                cont[b][ls] += flag
+                                offset += 1
+                        else:  # Find '0'
+                            a = 'f2s0'
+                            b = 'flp0'
+                            first_pix = 1
+                            flag = 1
+                            offset = k
+                            for ls in range(limit[d]-k):
+                                # All
+                                cont['total'][ls] += 1
+                                # F2
+                                cont[a][ls] += first_pix ^ w_vector[offset]
+                                # FL-check
+                                flag &= first_pix ^ w_vector[offset]
+                                # FL
+                                cont[b][ls] += flag
+                                offset += 1
+
+        return cont
+
+    def sphere(self, pixels, cont):
+        width = self.w
+        height = self.h
+        depth = self.d
+        ss = width * height
+        rs = width
+        rmin = 0
+        rmax = min(width / 2, height / 2, 20)
 
         maxD = depth - rmin
         maxH = height - rmin
@@ -146,17 +244,16 @@ class Contador(object):
         for d in range(rmin, maxD):
             for r in range(rmin, maxH):
                 for c in range(rmin, maxW):
-
                     first_pix = pixels[d * ss + r * rs + c]
-
                     flag = first_pix
                     cradio = min(
-                        rmax, c, width - c - 1, r, height - r - 1, d, depth - d - 1
+                        rmax,
+                        c, width - c - 1,
+                        r, height - r - 1,
+                        d, depth - d - 1
                     )
-
                     for radio in range(rmin, cradio + 1):
                         radio2 = radio ** 2
-
                         for d2 in range(-radio, radio + 1):
                             if flag == 0:
                                 break
@@ -167,72 +264,19 @@ class Contador(object):
                                     if flag == 0:
                                         break
                                     x = r2 ** 2 + c2 ** 2 + d2 ** 2
-                                    if min(x, radio2) == x:
+                                    if x <= radio2:
                                         valor = pixels[
                                             (d + d2) * ss +
                                             (r + r2) * rs +
                                             (c + c2)
-                                            ]
+                                        ]
                                     else:
                                         valor = 1
                                     flag &= valor
                         cont['PS1'][radio] += flag
-                        cont['total'][radio] += 1
-        return cont
-
-    def lines(self, pixels, cont, first=0):
-        if first is 0:
-            dim = 3
-            depth = self.d
-        else:
-            dim = 2
-            depth = 1
-        width = self.w
-        height = self.h
-        rs = width
-        ss = width * height
-
-        for d in range(depth):
-            for r in range(height):
-                for c in range(width):
-                    first_pix = pixels[
-                        d*ss + r*rs + c
-                    ]
-
-                    #   t --> Opera 't'
-                    if first_pix == 1:      # Find '1'
-                        a = 'f2s1'
-                        b = 'flp1'
-                        t = True
-                    else:                   # Find '0'
-                        a = 'f2s0'
-                        b = 'flp0'
-                        t = False
-
-                    delta_offset = [1, rs, ss]
-                    limit = [width - c, height - r, depth - d]
-
-                    #   Accountant
-                    first_pix = 1
-                    for i in range(dim):
-                        flag = 1
-                        offset = d*ss + r*rs + c
-                        for ls in range(limit[i]):
-                            # All
-                            cont['total'][ls] += 1
-                            # F2
-                            cont[a][ls] += opera(
-                                t, first_pix, pixels[
-                                    offset
-                                ]
-                            )
-                            # FL-check
-                            flag &= opera(
-                                t, first_pix, pixels[
-                                    offset
-                                ]
-                            )
-                            # FL
-                            cont[b][ls] += flag
-                            offset += delta_offset[i]
+        for radio in range(rmin, rmax + 1):
+            w2 = max(self.w - 2 * radio, 0)
+            h2 = max(self.h - 2 * radio, 0)
+            d2 = max(self.d - 2 * radio, 0)
+            cont['total'][radio] = w2 * h2 * d2
         return cont

@@ -1,73 +1,103 @@
 from jaimes_alg import Contador
 from rand import MyRandom
-from process import Process
-
 import time
+# from process import Process
 
 
-class Algo(Process):
-    def __init__(self, img, w, h, d):        # img[]
-        Process.__init__(self, 'SA')
+class Algo(object):
+    # def __init__(
+    #         self, threadID, name, counter, img, w, h, d):
+    #     Process.__init__(self, threadID, name, counter)
+    def __init__(self, img, w, h, d):
+        self.w, self.h, self.d = w, h, d
 
         self.tol = 0.0001
         self.max_ite = 1000
         self.ite = 0
         self.ite_fail = 0
 
+        self.action = 0
+
         self.cont = Contador(w, h, d)
         self.rand = MyRandom(w, h, d)
 
-        self.ref = self.cont.corr(img)
-        self.start_ref = {}
-        self.one_ref = self.cont.get_one(img)
-        self.one_res = (0, 0)
+        start = time.clock()
+        self.rand_img = self.rand.new()     # 2-3 secs
+        print '  Newed %s' % (time.clock() - start)
+
+        self.ref = self.cont.corr(img, 0)
+        self.result = []
+
+        self.start_res = []
         self.ene = 0
-        self.rand_img = self.rand.new()
-        # self.rand_img, self.ene = self.pos_init()
-        # self.pre_start()
+
+    def main(self):
+        action = self.action
+        draw = self.change()
+        if draw:
+            # start = time.clock()
+            action += 1
+            if action is 1:
+                start = time.clock()
+                flag = self.pre_start()
+                print '  Pre_started!!!: %s' % (time.clock() - start)
+            # elif action is 2:
+                start = time.clock()
+                flag = self.refill()
+                print '  Refilled!!!: %s' % (time.clock() - start)
+            # elif action is 3:
+                start = time.clock()
+                flag = self.after_fill()
+                print '  Correlated!!!: %s' % (time.clock() - start)
+                # return True
+            elif action is 4:
+                flag = self.sa_start()
+                return True
+            else:
+                self.action = 0
+        self.action = action
+        return False
 
     def change(self):
-        changer, val = self.rand.get_change()
-        if len(changer) > 0:
-            # if len(changer) is 1:
-            #     print 'last: ' + str(time.clock())
-            #     pix = changer.pop()
-            #     pix.val = val
-            # for i in range(int(len(changer) / 2.0)):
-            for i in range(len(changer)):
-                pix = changer.pop()
-                pix.val = val
-            print 'last: ' + str(time.clock())
+        changer, val, cords = self.rand.get_change()
+        if changer > 0:
+            for i in range(changer):
+                self.rand_img[cords[i]] = val
+            print '  Last: %s' % (time.clock())
             return False
         else:
             return True
 
     def pre_start(self):
-        self.start_ref = self.cont.corr(self.rand_img, 0)
-        self.rand.circled(self.cont.circle_ref, self.cont.circle_result)
+        lim = min(self.w, self.h, 21)
+        cont = [0] * lim
+        for radio in range(lim):
+            w2 = max(self.w - 2 * radio, 0)
+            h2 = max(self.h - 2 * radio, 0)
+            d2 = max(self.d - 2 * radio, 0)
+            cont[radio] = w2 * h2 * d2
+        self.rand.circled(self.cont.circle_ref, cont)
         return False
 
     def refill(self):
-        self.rand.count_zeros()
-        self.one_res = self.cont.set_one(self.rand_img)
-        lmax = self.one_ref[0] * len(self.rand_img)
-        lmin = self.one_res[0] * len(self.rand_img)
-        self.rand.f_swap(int(lmax - lmin))
+        n_ones = self.rand_img.count(1)
+        ones = self.ref[2] * len(self.rand_img)
+        self.rand.f_swap(int(ones - n_ones))
         return False
 
     def after_fill(self):
-        self.one_res = self.cont.set_one(self.rand_img)
-        self.start_ref = self.cont.corr(self.rand_img, 0)
+        self.start_res = self.cont.corr(self.rand_img)
         return False
 
     def sa_start(self):                                # Normal swapping (RANDOM)
-        self.ene = self.cont.corr(self.rand_img, 0)
+        f_ene = self.cont.errors(self.ref, self.start_res)
+        self.ene = f_ene
         accept = True
         thrs = 0.1
         while self.ene > self.tol * 100:                     # Initial tolerance
             self.rand.simple_swap()
             n_ref = self.cont.corr(self.rand_img)
-            self.ene = self.cont.errors(self.ref, n_ref)
+            self.ene = self.cont.errors(f_ene, n_ref)
             if self.ene < thrs:
                 thrs = self.ene
                 accept = True
@@ -75,7 +105,7 @@ class Algo(Process):
                 accept = False
         return False
 
-    def start(self, info=None):                                    # DPN swapping with threshold
+    def pos_start(self, info=None):                                    # DPN swapping with threshold
         img = self.rand_img
         ini_ite = 10
         p = 0.8                                         # More reading
