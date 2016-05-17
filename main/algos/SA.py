@@ -16,13 +16,13 @@ class Algo(Process):
         self.ite = 0
         self.ite_fail = 0
 
-        self.action = 0
+        self.action = ''
 
         self.cont = Contador(w, h, d)
         self.rand = MyRandom(w, h, d)
 
         start = time.clock()
-        self.rand_img, self.printed = self.rand.new()     # 2-3 secs
+        self.rand_img, self.printed = self.rand.new()     # 1-2 secs
         print '  Newed %s' % (time.clock() - start)
 
         self.ref = self.cont.corr(img, 0)
@@ -32,31 +32,33 @@ class Algo(Process):
         self.ene = 0
 
     def main(self):
-        action = self.action
+        # action = self.action
         draw = self.change()
         if draw:
             # start = time.clock()
-            action += 1
-            if action is 1:
+            if self.action is '':
+                self.action = 'Circled_grow'
                 start = time.clock()
                 flag = self.pre_start()
                 print '  Pre_started!!!: %s' % (time.clock() - start)
+                self.action = 'Refill'
             # elif action is 2:
                 start = time.clock()
                 flag = self.refill()
                 print '  Refilled!!!: %s' % (time.clock() - start)
+                self.action = 'Correlate'
             # elif action is 3:
                 start = time.clock()
                 flag = self.after_fill()
                 print '  Correlated!!!: %s' % (time.clock() - start)
+                self.action = 'Started'
                 # return True
-            elif action is 4:
-                flag = self.sa_start()
-                return True
+            # elif action is 4:
+            #     flag = self.sa_start()
+            #     return True
             else:
-                self.action = 0
-        self.action = action
-        return False
+                quit()
+        # self.action = action
 
     def change(self):
         changer, val, cords = self.rand.get_change()
@@ -105,14 +107,14 @@ class Algo(Process):
                 accept = False
         return False
 
-    def pos_start(self, info=None):                                    # DPN swapping with threshold
+    def pos_start(self):        # DPN swapping with threshold
         img = self.rand_img
         ini_ite = 10
-        p = 0.8                                         # More reading
+        p = 0.8                 # More reading
         delta_e = []
         e_th = 0
         while self.ene > self.tol and self.ite_fail < self.max_ite:
-            s_img, pix = self.rand.simple_swap(img)            # Swap worst pixel
+            s_img, pix = self.rand.simple_swap(img)                 # Swap worst pixel
             s_ref = self.cont.corr(img, 0)
             n_ene = self.cont.errors(self.ref, s_ref)
             d_e = n_ene - self.ene

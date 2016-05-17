@@ -46,12 +46,12 @@ class Contador(object):
             l_res = self.lines(data, self.line_ref)             # 1 secs
             print '    lines %s' % (time.clock() - start)
             start = time.clock()
-            c_res = self.circles(data, self.circle_ref)         # 10 secs
+            c_res = self.circles(data, self.circle_ref)         # 6-8 secs
             print '    circles %s' % (time.clock() - start)
         else:
             start = time.clock()
             self.line_result, self.circle_result = self.set_cont()
-            l_res = self.new_lines(data, self.line_result)      # 4 secs
+            l_res = self.new_lines(data, self.line_result)      # 4-5 secs
             print '    new lines %s' % (time.clock() - start)
             start = time.clock()
             c_res = self.sphere(data, self.circle_result)       # 20 mins
@@ -65,7 +65,6 @@ class Contador(object):
         return l_res, c_res, ones, zeros
 
     def errors(self, old, new):             # PDFs DIFF   --> To define...
-
         errors = 0
         for k in old.keys():
             if k is not 'total':
@@ -78,60 +77,51 @@ class Contador(object):
 
     def lines(self, pixels, cont):
         dim = 2
-        depth = 1
         width = self.w
         height = self.h
         rs = width
-        ss = width * height
 
-        for d in range(depth):
-            for r in range(height):
-                for c in range(width):
-                    first_pix = pixels[
-                        d * ss + r * rs + c
-                        ]
+        for r in range(height):
+            for c in range(width):
+                first_pix = pixels[r * rs + c]
 
-                    delta_offset = [1, rs, ss]
-                    limit = [width - c, height - r, depth - d]
+                delta_offset = [1, rs]
+                limit = [width - c, height - r]
 
-                    #   t --> Opera 't'
-                    if first_pix == 1:  # Find '1'
-                        a = 'f2s1'
-                        b = 'flp1'
-                        #   Accountant
-                        for i in range(dim):
-                            flag = 1
-                            offset = d * ss + r * rs + c
-                            for ls in range(limit[i]):
-                                # All
-                                cont['total'][ls] += 1
-                                # F2
-                                cont[a][ls] += pixels[offset]
-                                # FL-check
-                                flag &= pixels[offset]
-                                # FL
-                                cont[b][ls] += flag
-                                offset += delta_offset[i]
-
-                    else:  # Find '0'
-                        a = 'f2s0'
-                        b = 'flp0'
-                        # Accountant
-                        first_pix = 1
-                        for i in range(dim):
-                            flag = 1
-                            offset = d * ss + r * rs + c
-                            for ls in range(limit[i]):
-                                # All
-                                cont['total'][ls] += 1
-                                # F2
-                                cont[a][ls] += first_pix ^ pixels[offset]
-                                # FL-check
-                                flag &= first_pix ^ pixels[offset]
-                                # FL
-                                cont[b][ls] += flag
-                                offset += delta_offset[i]
-
+                if first_pix is 1:  # Find '1'
+                    a = 'f2s1'
+                    b = 'flp1'
+                    #   Accountant
+                    for i in range(dim):
+                        flag = 1
+                        offset = r * rs + c
+                        for ls in range(limit[i]):
+                            # All
+                            cont['total'][ls] += 1
+                            # F2
+                            cont[a][ls] += pixels[offset]
+                            # FL-check
+                            flag &= pixels[offset]
+                            # FL
+                            cont[b][ls] += flag
+                            offset += delta_offset[i]
+                else:  # Find '0'
+                    a = 'f2s0'
+                    b = 'flp0'
+                    # Accountant
+                    for i in range(dim):
+                        flag = 1
+                        offset = r * rs + c
+                        for ls in range(limit[i]):
+                            # All
+                            cont['total'][ls] += 1
+                            # F2
+                            cont[a][ls] += 1 ^ pixels[offset]
+                            # FL-check
+                            flag &= 1 ^ pixels[offset]
+                            # FL
+                            cont[b][ls] += flag
+                            offset += delta_offset[i]
         return cont
 
     def circles(self, pixels, cont):
@@ -194,37 +184,33 @@ class Contador(object):
                         w_vector[k] = pixels[main_offset + k * delta[d + 2]]
                     for k in range(limit[d + 2]):
                         first_pix = w_vector[k]
-                        if first_pix == 1:  # Find '1'
+                        flag = 1
+                        if first_pix is 1:  # Find '1'
                             a = 'f2s1'
                             b = 'flp1'
-                            flag = 1
-                            offset = k
                             for ls in range(limit[d]-k):
                                 # All
                                 cont['total'][ls] += 1
                                 # F2
-                                cont[a][ls] += w_vector[offset]
+                                cont[a][ls] += w_vector[k]
                                 # FL-check
-                                flag &= w_vector[offset]
+                                flag &= w_vector[k]
                                 # FL
                                 cont[b][ls] += flag
-                                offset += 1
+                                k += 1
                         else:  # Find '0'
                             a = 'f2s0'
                             b = 'flp0'
-                            first_pix = 1
-                            flag = 1
-                            offset = k
                             for ls in range(limit[d]-k):
                                 # All
                                 cont['total'][ls] += 1
                                 # F2
-                                cont[a][ls] += first_pix ^ w_vector[offset]
+                                cont[a][ls] += 1 ^ w_vector[k]
                                 # FL-check
-                                flag &= first_pix ^ w_vector[offset]
+                                flag &= 1 ^ w_vector[k]
                                 # FL
                                 cont[b][ls] += flag
-                                offset += 1
+                                k += 1
 
         return cont
 

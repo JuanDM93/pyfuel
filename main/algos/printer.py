@@ -49,7 +49,9 @@ class Printer(object):
 
         # mainloop
         while True:
+            start = time.clock()
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+            self.resizeGL(self.w, self.h)
             for event in pygame.event.get():
                 if event.type == QUIT:
                     quit()
@@ -69,30 +71,24 @@ class Printer(object):
                     pos = pygame.mouse.get_pos()
                 elif event.type == KEYUP:           # Start algorithm process button
                     # Should get more functions...
-                    if not self.algo.isAlive():
-                        # self.rand_img = self.algo.rand_img
+                    if self.algo.isAlive():
+                        print 'Algo runnin: %s' % self.algo.action
+                    else:
                         print 'Algo start: %s' % time.clock()
                         self.algo.start()
 
-            self.resizeGL(self.w, self.h)
-            l_pos = self.djent(active, pos, l_pos)                # mouse motion
-
             # Main functions:
-            start = time.clock()
             self.img3d()
             if active:
-                print 'Printed %s' % (time.clock() - start)
-
+                l_pos = self.djent(pos, l_pos)                # mouse motion
+                print 'Printed1 %s' % (time.clock() - start)
             pygame.display.flip()
 
     def initGL(self, width, height):
 
         glClearColor(0.5, 0.5, 0.5, 0.5)  # Define clear color [0.0-1.0]
-
         glEnable(GL_DEPTH_TEST)  # Enable GL depth functions.
-
         glShadeModel(GL_SMOOTH)  # Define lines as polygon instead of full polygon: GL_SMOOTH, GL_FLAT
-
         glRotate(30, 1, 1, 0)
 
         self.resizeGL(width, height)  # Call to the resize function.
@@ -120,8 +116,8 @@ class Printer(object):
 
         glMatrixMode(GL_MODELVIEW)  # Enable modelview matrix as current matrix.
 
-    def djent(self, active, pos, l_pos):
-        if active and pos is not l_pos:
+    def djent(self, pos, l_pos):
+        if pos is not l_pos:
             x, y = pos
             d_x, d_y = l_pos
 
@@ -142,8 +138,8 @@ class Printer(object):
         ss = self.w * self.h
 
         glBegin(GL_POINTS)
-        for p in self.printed:
-            d, r, c = p
+        for i in range(len(self.printed)):
+            d, r, c = self.printed[i]
             pos = d * ss + r * rs + c
             glColor3f(0, self.rand_img[pos], 0)
             glVertex3f(

@@ -61,18 +61,18 @@ class MyRandom(object):
             c = c_ref['PS1'][r] * n_ref[r]
             for p in range(int(c - cont0)):
                 pix = random.choice(self.cords)
-                self.circled_grow(pix, r)
+                self.circled_grow(pix, r, cont1)
                 cont1 += 1
-            cont0 = cont1 * 4                   # Calculate better
+            cont0 = cont1 * 5                   # Calculate better
 
-    def circled_grow(self, pix, radius):
+    def circled_grow(self, pix, radius, contador):
         width = self.w
         height = self.h
         depth = self.d
-        rmin = 1
-        rmax = min(width, height, radius)
         rs = width
         ss = width * height
+        rmax = min(width, height, radius)
+        rmin = 1
         d, r, c = pix
         pos = d * ss + r * rs + c
         self.image[pos] = 1
@@ -90,21 +90,19 @@ class MyRandom(object):
                 for r2 in range(-radio, radio + 1):
                     for c2 in range(-radio, radio + 1):
                         x = r2 ** 2 + c2 ** 2 + d2 ** 2
-                        if x < radio2:
+                        if x <= radio2:
                             offset = (d2 * ss) + (r2 * rs) + c2
                             other = pos + offset
                             self.image[other] = 1
 
     def f_swap(self, cont):
         args = 1
-        args2 = 0
-
-        if cont < 0:
-            args = args2
-            cont *= -1
-
         rs = self.w
         ss = self.w * self.h
+
+        if cont < 0:
+            args = 0
+            cont *= -1
 
         while cont > 0:
             pix = random.choice(self.cords)

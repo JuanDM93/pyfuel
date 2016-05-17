@@ -18,7 +18,7 @@ def main():
         2, 'algo',
         data, w, h, d
     )
-    # algo.setDaemon(True)
+    algo.setDaemon(True)
     print 'Referenced ', time.clock() - start
     printer = Printer(
         # 1, 'draw',
