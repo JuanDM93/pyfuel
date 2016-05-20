@@ -88,6 +88,9 @@ class Algo(Process):
         return False
 
     def after_fill(self):
+        start = time.clock()
+        self.rand.set_zeros()
+        print 'Set zeros %s' % (time.clock() - start)
         self.start_res = self.cont.corr(self.rand_img)
         return False
 

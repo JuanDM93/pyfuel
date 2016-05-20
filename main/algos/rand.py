@@ -19,6 +19,8 @@ class MyRandom(object):
         self.w = w
         self.h = h
         self.d = d
+        self.rs = w
+        self.ss = w * h
         self.resets = 0
         self.starts = 1
 
@@ -55,10 +57,10 @@ class MyRandom(object):
     def circled(self, c_ref, n_ref):
         cont0 = 0
         cont1 = 0
-        lim = len(c_ref['PS1']) - c_ref['PS1'].count(0)
+        lim = len(c_ref[1]) - c_ref[1].count(0)
 
         for r in range(lim - 1, 0, -1):
-            c = c_ref['PS1'][r] * n_ref[r]
+            c = c_ref[1][r] * n_ref[r]
             for p in range(int(c - cont0)):
                 pix = random.choice(self.cords)
                 self.circled_grow(pix, r, cont1)
@@ -69,8 +71,8 @@ class MyRandom(object):
         width = self.w
         height = self.h
         depth = self.d
-        rs = width
-        ss = width * height
+        rs = self.rs
+        ss = self.ss
         rmax = min(width, height, radius)
         rmin = 1
         d, r, c = pix
@@ -97,31 +99,41 @@ class MyRandom(object):
 
     def f_swap(self, cont):
         args = 1
-        rs = self.w
-        ss = self.w * self.h
-
+        spots = range(len(self.cords))
         if cont < 0:
             args = 0
             cont *= -1
-
         while cont > 0:
-            pix = random.choice(self.cords)
-            d, r, c = pix
-            pos = d * ss + r * rs + c
+            pos = random.choice(spots)
             val = self.image[pos]
             self.image[pos] = args
             if val is not args:
                 cont -= 1
 
-    def simple_swap(self):              # Swap random pixels with different phase
-        a = random.choice(self.zeros)
-        self.zeros.remove(a)
-        self.i_change.append(a)
-        b = random.choice(self.ones)
-        self.ones.remove(b)
-        self.j_change.append(b)
-        self.ones.append(a)
-        self.zeros.append(b)
+    def set_zeros(self):
+        for i in range(len(self.image)):
+            val = self.image[i]
+            cord = self.cords[i]
+            if val is 1:
+                self.ones.append(cord)
+            else:
+                self.zeros.append(cord)
+
+    def simple_swap(self):
+        rs = self.w
+        ss = self.w * self.h
+        zero = random.choice(self.zeros)
+        one = random.choice(self.ones)
+        self.zeros.remove(zero)
+        self.ones.append(zero)
+        self.ones.remove(one)
+        self.zeros.append(one)
+        d, r, c = zero
+        pos = d * ss + r * rs + c
+        self.image[pos] = 1
+        d, r, c = one
+        pos = d * ss + r * rs + c
+        self.image[pos] = 0
 
     def rand_pix(self):
         vec = self.checkN()

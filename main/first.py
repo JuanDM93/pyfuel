@@ -8,8 +8,9 @@ import cProfile
 
 def main():
     io = FileIO()
-    data, w, h = io.readAll('infile2.csv')
-    # data, w, h = io.readAll('infile')
+    # data, w, h = io.readAll('infile2.csv')      # 4 hrs
+    data, w, h = io.readAll('infile3.csv')      # 30 min
+    # data, w, h = io.readAll('infile')           # 1 sec
     d = min(w, h)
 
     start = time.clock()

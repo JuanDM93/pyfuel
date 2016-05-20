@@ -3,10 +3,10 @@ import time
 
 def norm(pdf):
     for i in pdf:
-        if i is not 'total':
+        if i is not 0:
             for j in range(len(pdf[i])):
-                if pdf['total'][j] is not 0:
-                    pdf[i][j] /= pdf['total'][j] * 1.000
+                if pdf[0][j] is not 0:
+                    pdf[i][j] /= pdf[0][j] * 1.000
     return pdf
 
 
@@ -32,8 +32,8 @@ class Contador(object):
         self.line_result, self.circle_result = self.set_cont()
 
     def set_cont(self):
-        l_name = ['f2s1', 'flp1', 'f2s0', 'flp0', 'total']
-        c_name = ['PS1', 'total']
+        l_name = [4, 3, 2, 1, 0]
+        c_name = [1, 0]
 
         line = setCont(max(self.w, self.h), l_name)
         # Min or max??? --> cradio + 1?
@@ -67,12 +67,12 @@ class Contador(object):
     def errors(self, old, new):             # PDFs DIFF   --> To define...
         errors = 0
         for k in old.keys():
-            if k is not 'total':
+            if k is not 0:
                 for i in range(len(old[k])):
                     error = old[k][i] - new[k][i]
                     error *= error
                     errors += error
-        errors /= len(old['total'])
+        errors /= len(old[0])
         return errors
 
     def lines(self, pixels, cont):
@@ -89,15 +89,15 @@ class Contador(object):
                 limit = [width - c, height - r]
 
                 if first_pix is 1:  # Find '1'
-                    a = 'f2s1'
-                    b = 'flp1'
+                    a = 4
+                    b = 3
                     #   Accountant
                     for i in range(dim):
                         flag = 1
                         offset = r * rs + c
                         for ls in range(limit[i]):
                             # All
-                            cont['total'][ls] += 1
+                            cont[0][ls] += 1
                             # F2
                             cont[a][ls] += pixels[offset]
                             # FL-check
@@ -106,15 +106,15 @@ class Contador(object):
                             cont[b][ls] += flag
                             offset += delta_offset[i]
                 else:  # Find '0'
-                    a = 'f2s0'
-                    b = 'flp0'
+                    a = 2
+                    b = 1
                     # Accountant
                     for i in range(dim):
                         flag = 1
                         offset = r * rs + c
                         for ls in range(limit[i]):
                             # All
-                            cont['total'][ls] += 1
+                            cont[0][ls] += 1
                             # F2
                             cont[a][ls] += 1 ^ pixels[offset]
                             # FL-check
@@ -156,11 +156,11 @@ class Contador(object):
                             else:
                                 valor = 1
                             flag &= valor
-                    cont['PS1'][radio] += flag
+                    cont[1][radio] += flag
         for radio in range(rmin, rmax + 1):
             w2 = max(self.w - 2*radio, 0)
             h2 = max(self.h - 2*radio, 0)
-            cont['total'][radio] = w2*h2
+            cont[0][radio] = w2*h2
         return cont
 
     def new_lines(self, pixels, cont):
@@ -186,11 +186,11 @@ class Contador(object):
                         first_pix = w_vector[k]
                         flag = 1
                         if first_pix is 1:  # Find '1'
-                            a = 'f2s1'
-                            b = 'flp1'
+                            a = 4
+                            b = 3
                             for ls in range(limit[d]-k):
                                 # All
-                                cont['total'][ls] += 1
+                                cont[0][ls] += 1
                                 # F2
                                 cont[a][ls] += w_vector[k]
                                 # FL-check
@@ -199,11 +199,11 @@ class Contador(object):
                                 cont[b][ls] += flag
                                 k += 1
                         else:  # Find '0'
-                            a = 'f2s0'
-                            b = 'flp0'
+                            a = 2
+                            b = 1
                             for ls in range(limit[d]-k):
                                 # All
-                                cont['total'][ls] += 1
+                                cont[0][ls] += 1
                                 # F2
                                 cont[a][ls] += 1 ^ w_vector[k]
                                 # FL-check
@@ -259,10 +259,10 @@ class Contador(object):
                                     else:
                                         valor = 1
                                     flag &= valor
-                        cont['PS1'][radio] += flag
+                        cont[1][radio] += flag
         for radio in range(rmin, rmax + 1):
             w2 = max(self.w - 2 * radio, 0)
             h2 = max(self.h - 2 * radio, 0)
             d2 = max(self.d - 2 * radio, 0)
-            cont['total'][radio] = w2 * h2 * d2
+            cont[0][radio] = w2 * h2 * d2
         return cont

@@ -4,7 +4,7 @@ from PyQt4 import QtGui
 
 class MyApp(QtGui.QWidget):
     def __init__(self):
-        # super(MyApp, self).__init__()
+        super(MyApp, self).__init__()
         self.initUI()
 
     def initUI(self):
@@ -41,36 +41,13 @@ class MyApp(QtGui.QWidget):
 
         self.setLayout(grid)
 
-        self.setGeometry(300,300,350,300)
+        self.setGeometry(300, 300, 350, 300)
         self.setWindowTitle("Streamer")
         self.show()
 
     def buttonClicked(self):
+        pass
 
-        video_path = str(self.get_V.text())
-        audio_path = str(self.get_A.text())
-        ginga_path = str(self.get_G.text())
-        result_path = str(self.get_R.text())
-
-        args = [
-            video_path, audio_path, ginga_path
-            ]
-        value = 0x0
-        mask = 0x1
-        for i in args:
-            if i != '':
-                value = value | mask
-            mask = mask << 1
-
-        if result_path == '':
-            self.initUI()
-        elif video_path != '' or audio_path != '' or ginga_path != '':
-            self.fun = Fun(
-                value, result_path, video_path, audio_path, ginga_path
-                )
-            QtGui.QMessageBox.about(self, 'Finished', "Path = %sresult.ts" % (result_path))
-        else:
-            QtGui.QMessageBox.about(self, 'Error', "No hay archivos especificados")
 
 def main():
 
