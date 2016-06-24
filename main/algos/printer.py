@@ -147,17 +147,6 @@ class Printer(object):
                 z * (r - self.dif[1]),
                 z * (c - self.dif[2]),
             )
-        # for i in range(0, self.d):
-        #     for j in range(0, self.h):
-        #         for k in range(0, self.w):
-        #             if i < 1 or i > self.d - 2 or j < 1 or j > self.h - 2 or k < 1 or k > self.w - 2:
-        #                 pos = i * ss + j * rs + k
-        #                 glColor3f(0, self.rand_img[pos], 0)
-        #                 glVertex3f(
-        #                     z * (i - self.dif[0]),
-        #                     z * (j - self.dif[1]),
-        #                     z * (k - self.dif[2])
-        #                 )
         glEnd()
 
     def img2d(self):

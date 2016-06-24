@@ -1,18 +1,6 @@
 import random
 
 
-def neigh(x, lim):
-    vec = []
-    if x > 0:
-        vec.append(-1)
-    if x < lim - 1:
-        vec.append(1)
-    neig = []
-    for v in vec:
-        neig.append(x + v)
-    return neig
-
-
 class MyRandom(object):
 
     def __init__(self, w, h, d):
@@ -26,48 +14,47 @@ class MyRandom(object):
 
         self.image = []
         self.cords = []
+        self.cask = []
+
         self.i_change = 0
         self.j_change = 0
 
         self.ones = []
         self.zeros = []
 
-    def new(self):
+    def new(self, val):
         printed = []
         for i in range(self.d):
             for j in range(self.h):
                 for k in range(self.w):
                     p = (i, j, k)
-                    self.image.append(0)
+                    self.image.append(val)
                     self.cords.append(p)
                     if i < 1 or i > self.d - 2\
                             or j < 1 or j > self.h - 2\
                             or k < 1 or k > self.w - 2:
                         printed.append(p)
+                    if i > 10 or i < self.d - 11 \
+                            or j > 10 or j < self.h - 11 \
+                            or k > 10 or k < self.w - 11:
+                        self.cask.append(p)
         return self.image, printed
 
-    def get_change(self):
-        if self.i_change < 1 and self.j_change < 1:
-            return 0, -1, []
-        elif self.i_change > self.j_change:
-            return self.i_change, 1, self.ones
-        else:
-            return self.j_change, 0, self.zeros
-
-    def circled(self, c_ref, n_ref):
+    def circled(self, c_ref, n_ref, val):
         cont0 = 0
-        cont1 = 0
         lim = len(c_ref[1]) - c_ref[1].count(0)
+        val = ~val + 2
 
-        for r in range(lim - 1, 0, -1):
+        for r in range(lim - 1, -1, -1):
             c = c_ref[1][r] * n_ref[r]
+            cont1 = 0
             for p in range(int(c - cont0)):
-                pix = random.choice(self.cords)
-                self.circled_grow(pix, r, cont1)
-                cont1 += 1
-            cont0 = cont1 * 5                   # Calculate better
+                pix = random.choice(self.cask)
+                self.circled_grow(pix, r, val)
+                cont1 += 7
+            cont0 = cont1                   # Calculate better
 
-    def circled_grow(self, pix, radius, contador):
+    def circled_grow(self, pix, radius, val):
         width = self.w
         height = self.h
         depth = self.d
@@ -77,7 +64,7 @@ class MyRandom(object):
         rmin = 1
         d, r, c = pix
         pos = d * ss + r * rs + c
-        self.image[pos] = 1
+        self.image[pos] = val
 
         cradio = min(
             rmax,
@@ -95,16 +82,21 @@ class MyRandom(object):
                         if x <= radio2:
                             offset = (d2 * ss) + (r2 * rs) + c2
                             other = pos + offset
-                            self.image[other] = 1
+                            self.image[other] = val
 
     def f_swap(self, cont):
         args = 1
-        spots = range(len(self.cords))
+        spots = self.getNeighs()
+        ss = self.w * self.h
+        rs = self.w
         if cont < 0:
             args = 0
             cont *= -1
         while cont > 0:
-            pos = random.choice(spots)
+            if len(spots) < 1:
+                spots = self.getNeighs()
+            d, r, c = random.choice(spots)
+            pos = d * ss + r * rs + c
             val = self.image[pos]
             self.image[pos] = args
             if val is not args:
@@ -140,26 +132,35 @@ class MyRandom(object):
         for i in vec:
             i.change()
 
-    def checkN(self):
+    def getNeighs(self):
         pix_change = []
-        for i in self.image:
-            rs = self.w
-            ss = self.w * self.h
-            off = [1, rs, ss]
-            pos = [i.x, i.y, i.z]
-            lim = [self.w, self.h, self.d]
+        rs = self.w
+        ss = self.w * self.h
+        off = [ss, rs, 1]
+        lim = [self.d, self.h, self.w]
+        for i in self.cords:
+            flag = 0
+            v_cont = 0
+            d, r, c = i
+            pos = d * ss + r * rs + c
             for n in range(3):
-                vec = neigh(pos[n], lim[n])
+                vec = self.neigh(i[n], lim[n])
                 for v in vec:
-                    other = i.pos + (v - pos[n])*off[n]
-                    val = self.image[other].val
-                    i.flag += i.val ^ val
-            if i.flag > 3 and i.changes < 2:
+                    other = pos + (v - i[n]) * off[n]
+                    val = self.image[other]
+                    flag += self.image[pos] ^ val
+                    v_cont += 1
+            if flag > 1:
                 pix_change.append(i)
         return pix_change
 
-    def reset(self):
-        self.image = self.best
-        self.resets += 1
-        for i in self.image:
-            i.reset()
+    def neigh(self, x, lim):
+        vec = []
+        if x > 0:
+            vec.append(-1)
+        if x < lim - 1:
+            vec.append(1)
+        neig = []
+        for v in vec:
+            neig.append(x + v)
+        return neig

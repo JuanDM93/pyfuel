@@ -8,8 +8,9 @@ import cProfile
 
 def main():
     io = FileIO()
-    # data, w, h = io.readAll('infile2.csv')      # 4 hrs
-    data, w, h = io.readAll('infile3.csv')      # 30 min
+    # data, w, h = io.readAll('infile2.csv')          # 4 hrs
+    data, w, h = io.readAll('infile3.csv')          # 30 min
+    # For neighbours image bigger than 10 by size
     # data, w, h = io.readAll('infile')           # 1 sec
     d = min(w, h)
 

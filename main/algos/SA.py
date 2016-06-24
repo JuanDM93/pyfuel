@@ -18,57 +18,51 @@ class Algo(Process):
 
         self.action = ''
 
+        self.img = img
         self.cont = Contador(w, h, d)
         self.rand = MyRandom(w, h, d)
 
+        if self.img.count(0) < self.img.count(1):
+            self.val = 1
+        else:
+            self.val = 0
+        # Thread 2
+        self.ref = self.cont.corr(self.img, self.val, 0)
+
         start = time.clock()
-        self.rand_img, self.printed = self.rand.new()     # 1-2 secs
+        # Thread 1
+        self.rand_img, self.printed = self.rand.new(self.val)     # 1-2 secs
         print '  Newed %s' % (time.clock() - start)
 
-        self.ref = self.cont.corr(img, 0)
         self.result = []
 
         self.start_res = []
         self.ene = 0
 
     def main(self):
-        # action = self.action
-        draw = self.change()
-        if draw:
-            # start = time.clock()
-            if self.action is '':
-                self.action = 'Circled_grow'
-                start = time.clock()
-                flag = self.pre_start()
-                print '  Pre_started!!!: %s' % (time.clock() - start)
-                self.action = 'Refill'
-            # elif action is 2:
-                start = time.clock()
-                flag = self.refill()
-                print '  Refilled!!!: %s' % (time.clock() - start)
-                self.action = 'Correlate'
-            # elif action is 3:
-                start = time.clock()
-                flag = self.after_fill()
-                print '  Correlated!!!: %s' % (time.clock() - start)
-                self.action = 'Started'
-                # return True
-            # elif action is 4:
-            #     flag = self.sa_start()
-            #     return True
-            else:
-                quit()
-        # self.action = action
-
-    def change(self):
-        changer, val, cords = self.rand.get_change()
-        if changer > 0:
-            for i in range(changer):
-                self.rand_img[cords[i]] = val
-            print '  Last: %s' % (time.clock())
-            return False
+        # start = time.clock()
+        if self.action is '':
+            self.action = 'Circled_grow'
+            start = time.clock()
+            flag = self.pre_start()
+            print '  Pre_started!!!: %s' % (time.clock() - start)
+            self.action = 'Refill'
+        # elif action is 2:
+            start = time.clock()
+            flag = self.refill()
+            print '  Refilled!!!: %s' % (time.clock() - start)
+            self.action = 'Correlate'
+        # elif action is 3:
+            start = time.clock()
+            flag = self.after_fill()
+            print '  Correlated!!!: %s' % (time.clock() - start)
+            self.action = 'Started'
+            # return True
+        # elif action is 4:
+        #     flag = self.sa_start()
+        #     return True
         else:
-            return True
+            quit()
 
     def pre_start(self):
         lim = min(self.w, self.h, 21)
@@ -78,7 +72,7 @@ class Algo(Process):
             h2 = max(self.h - 2 * radio, 0)
             d2 = max(self.d - 2 * radio, 0)
             cont[radio] = w2 * h2 * d2
-        self.rand.circled(self.cont.circle_ref, cont)
+        self.rand.circled(self.cont.circle_ref, cont, self.val)
         return False
 
     def refill(self):
@@ -91,7 +85,7 @@ class Algo(Process):
         start = time.clock()
         self.rand.set_zeros()
         print 'Set zeros %s' % (time.clock() - start)
-        self.start_res = self.cont.corr(self.rand_img)
+        self.start_res = self.cont.corr(self.rand_img, self.val)
         return False
 
     def sa_start(self):                                # Normal swapping (RANDOM)

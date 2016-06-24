@@ -17,44 +17,63 @@ def setCont(limit, names):
     return cont
 
 
+def getMirror(img):
+    nimg = img[:]
+    for i in range(len(img)):
+        nimg[i] = ~nimg[i] + 2
+    return nimg
+
+
 class Contador(object):
     def __init__(self, width, height, depth):
         self.w = width
         self.h = height
         self.d = depth
 
-        # Info for faster revert ???
-        # self.pix = 0
-
         self.cords_ones = []
         self.cords_zeros = []
+
+        # Thread 1
         self.line_ref, self.circle_ref = self.set_cont()
+
+        # Thread 2
         self.line_result, self.circle_result = self.set_cont()
 
     def set_cont(self):
         l_name = [4, 3, 2, 1, 0]
         c_name = [1, 0]
 
+        # Thread 1
         line = setCont(max(self.w, self.h), l_name)
-        # Min or max??? --> cradio + 1?
-        circle = setCont(min(self.w, self.h, 21), c_name)
+        # Thread 2
+        circle = setCont(min(self.w, self.h, 21), c_name)   # Min or max??? --> cradio + 1?
         return line, circle
 
-    def corr(self, data, pix=1):
+    def corr(self, data, val, pix=1):
+        # Circles only
+        if val is 1:
+            pixels = getMirror(data)
+        else:
+            pixels = data
+
         if pix is 0:
             start = time.clock()
+            # Thread 1
             l_res = self.lines(data, self.line_ref)             # 1 secs
             print '    lines %s' % (time.clock() - start)
             start = time.clock()
-            c_res = self.circles(data, self.circle_ref)         # 6-8 secs
+            # Thread 2
+            c_res = self.circles(pixels, self.circle_ref)         # 6-8 secs
             print '    circles %s' % (time.clock() - start)
         else:
             start = time.clock()
             self.line_result, self.circle_result = self.set_cont()
+            # Thread 1
             l_res = self.new_lines(data, self.line_result)      # 4-5 secs
             print '    new lines %s' % (time.clock() - start)
             start = time.clock()
-            c_res = self.sphere(data, self.circle_result)       # 20 mins
+            # Thread 2
+            c_res = self.sphere(pixels, self.circle_result)       # 20 mins
             print '    spheres %s' % (time.clock() - start)
         ones = data.count(1)
         zeros = len(data) - ones
@@ -131,6 +150,7 @@ class Contador(object):
         rmax = min(width / 2, height / 2, 20)
         maxH = height - rmin
         maxW = width - rmin
+
         for r in range(rmin, maxH):
             for c in range(rmin, maxW):
                 first_pix = pixels[r * width + c]
